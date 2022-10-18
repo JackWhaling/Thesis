@@ -7,15 +7,16 @@ from firebase_admin import firestore
 from pydantic import BaseModel
 from typing import List, Dict
 import time
+from datetime import date, datetime
 import psycopg2
 
-
-firestoreDb = firestore.client()
+# firestoreDb = firestore.client()
 conn = psycopg2.connect(
     host="database-1.cr5yt92m1t0g.ap-southeast-2.rds.amazonaws.com",
     password="lt4Uqx6EO#sy6*sq0gFmHf",
     port="5432",
-    user="postgres"
+    user="postgres",
+    database="database"
 )
 
 origins = ["*"]
@@ -57,12 +58,33 @@ def getApp():
 
 @app.get("/v1/alive", status_code=status.HTTP_200_OK)
 def alive():
-    return {"hello world": "propa vote"}
+    return {"database-check": conn.closed}
 
 
 @app.post("/v1/polls/create", status_code=status.HTTP_201_CREATED)
 def createPoll(BallotInfo: BallotCreate):
     return {}
+
+
+@app.get("/v1/polls/details/{id}", status_code=status.HTTP_200_OK)
+def getPollDetails(id):
+    return {}
+
+
+@app.put("/v1/polls/close", status_code=status.HTTP_201_CREATED)
+def closePole(BallotInfo: BallotBaseInfo):
+    return {}
+
+
+@app.post("/v1/ballots/give", status_code=status.HTTP_200_OK)
+def ballotVote(BasicVote: BallotVote):
+    return{}
+
+
+@app.put("/v1/ballots/update", status_code=status.HTTP_201_CREATED)
+def updateBallot(UpdateVote: BallotVote):
+    return {}
+
 
 # logger (keeps track of API performance) Runs for each request of the api
 
