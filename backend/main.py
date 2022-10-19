@@ -1,23 +1,27 @@
 from fastapi import FastAPI, status, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
+# import firebase_admin
+# from firebase_admin import credentials
+# from firebase_admin import firestore
 from pydantic import BaseModel
 from typing import List, Dict
+from dotenv import load_dotenv
 import time
 from datetime import date, datetime
 import psycopg2
+import os
+
+load_dotenv()
 
 # firestoreDb = firestore.client()
-conn = psycopg2.connect(
-    host="database-1.cr5yt92m1t0g.ap-southeast-2.rds.amazonaws.com",
-    password="lt4Uqx6EO#sy6*sq0gFmHf",
-    port="5432",
-    user="postgres",
-    database="database"
-)
+# conn = psycopg2.connect(
+#     host=os.getenv('HOST'),
+#     password=os.getenv('PASSWORD'),
+#     port=os.getenv('PORT'),
+#     user=os.getenv('USER'),
+#     database=os.getenv('DATABASE')
+# )
 
 origins = ["*"]
 
@@ -58,7 +62,7 @@ def getApp():
 
 @app.get("/v1/alive", status_code=status.HTTP_200_OK)
 def alive():
-    return {"database-check": conn.closed}
+    return {"database-check": os.getenv('DB_PORT')}
 
 
 @app.post("/v1/polls/create", status_code=status.HTTP_201_CREATED)
