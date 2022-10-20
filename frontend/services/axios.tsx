@@ -5,7 +5,7 @@ const API = Axios.create({
   timeout: 30000,
 })
 
-const exceptionHandler = (e) => {
+const exceptionHandler = (e: any) => {
   let responseContent = {};
   if (e.response) {
     // The request was made and the server responded with a status code
@@ -49,8 +49,8 @@ const exceptionHandler = (e) => {
   return responseContent;
 };
 
-export const putRecord = async (relativeUri, data) => {
-  let responseContent = {
+export const putRecord = async (relativeUri: string, data: any) => {
+  let responseContent: any = {
     status: "",
     message: "",
     data: "",
@@ -74,8 +74,8 @@ export const putRecord = async (relativeUri, data) => {
   }
 };
 
-export const postRecord = async (relativeUri, data) => {
-  let responseContent = {
+export const postRecord = async (relativeUri: string, data: any) => {
+  let responseContent: any = {
     status: "",
     message: "",
     data: "",
@@ -99,8 +99,8 @@ export const postRecord = async (relativeUri, data) => {
   }
 };
 
-export const getRecord = async (relativeUri) => {
-  let responseContent = {
+export const getRecord = async (relativeUri: string) => {
+  let responseContent: any = {
     status: "",
     message: "",
     data: "",
@@ -123,8 +123,8 @@ export const getRecord = async (relativeUri) => {
   }
 };
 
-export const deleteRecord = async (relativeUri, data) => {
-  let responseContent = {
+export const deleteRecord = async (relativeUri: string, data: any) => {
+  let responseContent: any = {
     status: "",
     message: "",
     data: "",

@@ -19,19 +19,19 @@ export const INITIAL_USER_STATE = {
   id: "",
 }
 
-type UserContextProviderProps = {
+export type UserContextProviderProps = {
   children: React.ReactNode
 }
 
-type UserContextType = {
-  userValues: IUser | null,
-  setUserValues: React.Dispatch<React.SetStateAction<IUser | null>>
+export type UserContextType = {
+  userValues: IUser,
+  setUserValues: React.Dispatch<React.SetStateAction<IUser>>
 }
 
 export const userContext = createContext<UserContextType | null>(null);
 
 export const UserProvider = ({ children }: UserContextProviderProps) => {
-  const [userValues, setUserValues] = useState<IUser | null>(INITIAL_USER_STATE)
+  const [userValues, setUserValues] = useState<IUser>(INITIAL_USER_STATE)
 
   return (
     <userContext.Provider value={{ userValues, setUserValues }}>
