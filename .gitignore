@@ -120,6 +120,9 @@ venv.bak/
 # mkdocs documentation
 /site
 
+###shhhh
+privatekey.json
+
 # mypy
 .mypy_cache/
 .dmypy.json

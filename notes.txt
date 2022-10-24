@@ -1,0 +1,59 @@
+Social choice theory is the field that studies the cluster of individual preferences toward a collection choice.
+
+Computational social choice is instead is used to assess the computational difficulty of determining the output
+of a voting rule or of manipulating it.
+
+Two main thrusts 1) apply computational paradigms and techniques to provide a better analysis of social choice mechanisms
+and construct new ones
+
+2) social choice theory to computational environments. Low stake environments allow designers to freely switch between choice
+mechanisms and therefor they provide an ideal test bed for ideas coming from social choice theory.
+
+how to best match people on a basis of their preferences and how to aggregate the beliefs
+of several individuals.
+
+Copeland method) most pair wise wins is declared winner similar to a round robin however
+copeland can lead to ties and creates too much emphasis on the amount of pair wise victories
+as opposed to their magnitude
+
+Broda rule) each voter i ranks all candidates and each candidate recieves as many points
+from a given voter as that voter ranks other candidates below her.
+
+Consider 3 candidates and 11 voters
+
+Four voters prefer candidates in order A->B->C, 3 prefer B->C->a
+and 2 prefer B->A->C and C->A->B
+
+B wins via pluarity rule with 5 points and by broda rule with
+(4 * 1 + 3 * 2 + 2* 2 + 2 * 0 = 14 points)
+
+However a majority of voters (namely 6 out of 11) prefer A over B
+
+in this case A is the Condorcet winner.
+
+If 2 more voters join to vote C->A->B then a majority prefers A over B and B over C
+but now also a majority prefers C to A.
+
+This is known as the condorect paradox leading to not always a clear election outcome.'
+
+Arrows theoreom
+
+Independent of irrelevent alternatives: simply if there are candidates ABC and A beats B 
+then removing candidate C does not change such outcome
+
+Unaminity: If everyone votes for A then A wins.
+
+Someone is a dictator if whenever they stricty prefer one altnerative to another the society
+always prefers it as well.
+
+Ranged voting systems
+
+Unknown lunatic, a large group sabotages every other candidate bar one.
+
+Under range voting: Rather a system that optimizes overall hapiness or majority rule
+
+Is condorect winner more important.
+
+Arrows theoreom essentially shows that a dictator is prefelent in ranked voting 
+
+First brought into computational concepts when studying kemenys rule
