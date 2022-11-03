@@ -7,7 +7,7 @@ interface INavItem {
 
 const NavItem : React.FC<INavItem> = ({info, active}: INavItem) => {
   return (
-    <div className={`${active ? "navbar__item--active" : "navbar__item"}`}>
+    <div className={`navbar__item ${active ? "navbar__item--active" : "navbar__item--inactive"}`}>
       {info.text}
     </div>
   )

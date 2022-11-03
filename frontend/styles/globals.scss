@@ -1,12 +1,13 @@
+@import "./common/variables";
+
 html,
 body {
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  background: #eadeda;
-  background-image: linear-gradient(90deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px), linear-gradient(#c9c2be .1em, transparent .1em);
-  background-size: 100% 1.2rem;
+  background: $constant-red;
+
 }
 
 a {

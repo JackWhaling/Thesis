@@ -23,11 +23,11 @@ const Navbar = () => {
   return (
     <div className="navbar__container">
       <div className="navbar__logo-divider">
-        <div className="navbar__hamburger"></div>
+
         <div className="navbar__logo">
-          <h1>
-            PropaVote
-          </h1>
+          <Link href="/">
+            <h1>PropaVote</h1>
+          </Link>
         </div>
         <div className={`navbar__menu-list ${isOpen ? "navbar__menu-list--open" : "navbar__menu-list--closed"}`}>
           {MENU_ITEMS.map((menu, index) => (
@@ -42,6 +42,7 @@ const Navbar = () => {
               </div>
             </Link>
           ))}
+          <div className="navbar__hamburger"></div>
         </div>
       </div>
     </div>

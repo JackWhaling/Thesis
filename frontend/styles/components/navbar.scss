@@ -1,3 +1,5 @@
+@import "../common/variables";
+
 .navbar {
   &__container {
     width: 100%;
@@ -8,10 +10,16 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-around;
 
     h1 {
       margin: 8px;
     }
+  }
+
+  &__logo {
+    cursor: pointer;
+    color: $constant-purple;
   }
 
   &__menu-list {
@@ -28,7 +36,7 @@
     position: relative;
     opacity: 1;
     z-index: 4;
-    color: black;
+    color: $constant-white;
     align-content: center;
     align-self: center;
     align-items: center;
@@ -42,25 +50,27 @@
       width: 100%;
       transform: scaleX(0);
       height: 2px;
-      bottom: -10px;
+      bottom: -2px;
       left: 0;
-      background-color: black;
+      background-color: $constant-purple;
       transform-origin: bottom right;
       transition: transform 0.25s ease-out;
     }
 
     &:hover {
-      color: black;
+      color: $constant-purple;
     }
 
     &:hover:after {
-      background-color: black;
+      background-color: $constant-purple;
       transform: scaleX(1);
       transform-origin: bottom left;
     }
+    
     &--active {
-      border-bottom: 2px solid black;
+      font-weight: bold;
+      color: $constant-purple;
+      border-bottom: 2px solid $constant-purple;
     }
   }
-
 }
