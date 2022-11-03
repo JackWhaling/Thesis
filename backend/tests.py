@@ -1,12 +1,9 @@
 from xml.dom.minidom import Element
-from votingRules import convertToAbcProfile
+from votingRules import convertToAbcProfile, convertToEarProfile, getAbcResult
 from typing import List, Dict
 from abcvoting import abcrules
 
-from votingRules.abcRules import rankMaximalAbc
-
 if __name__=="__main__":
-  print("hello")
   numCands = 4
   votes = [
     {
@@ -29,8 +26,7 @@ if __name__=="__main__":
     }
   ]
   newProf = convertToAbcProfile(votes, numCands)
-  print(newProf.str_compact())
-  for voter in newProf._voters:
-    for element in voter.approved:
-      print(element)
-  print(rankMaximalAbc(newProf))
+  otherProf = convertToEarProfile(votes, numCands)
+
+  for voter in otherProf.voters:
+    print(voter.voteArray)

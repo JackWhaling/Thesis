@@ -7,10 +7,12 @@ from firebase_admin import firestore
 from pydantic import BaseModel
 from typing import List, Dict
 from dotenv import load_dotenv
+from models import BallotBaseInfo, BallotCreate, BallotVote, CreateVoter
 import time
 from datetime import date, datetime
 import psycopg2
 import os
+from endpoints import createUserEntry, createBallot, getBallotInfo, getBallotSecure
 
 load_dotenv()
 
@@ -31,82 +33,70 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-class BallotCreate(BaseModel):
-    ballotType: str
-    inviteMethod: str
-    votingRule: str
-    liveResult: bool
-    numWinners: int
-    candidates: List[str]
-
-
-class BallotBaseInfo(BaseModel):
-    userToken: str
-    ballotId: str
-
-class CreateVoter(BaseModel):
-    userId: str
-    email: str
-
-class BallotVote(BaseModel):
-    userToken: str
-    ballotId: str
-    ballot: Dict[str, int]
-
-
 def getApp():
     return app
 
 
-#if getting results not wanted, check if database/firebase connection is ok. If these connections
+# if getting results not wanted, check if database/firebase connection is ok. If these connections
 # are working then we can deduce its 100% internal error
 @app.get("/v1/alive", status_code=status.HTTP_200_OK)
 def alive():
     crsr = conn.cursor()
     crsr.execute('SELECT version()')
     db_version = crsr.fetchone()
-    aliveText = "connected" if (db_version) else "error"
+    aliveText = "connected to {}".format(db_version) if (db_version) else "error"
     crsr.close()
     firebaseText = "connected" if (fbapp) else "error"
     return {"database-check": aliveText, "firebase-check": firebaseText}
 
 
 @app.post("/v1/users/create", status_code=status.HTTP_201_CREATED)
-def createVoter(VoterDetails: CreateVoter):
-    
-    return {}
+def createVoter(voterDetails: CreateVoter):
+    return createUserEntry(fbdb=fbapp, postgresdb=conn, userInfo=voterDetails)
+
 
 @app.get("/v1/users/{id}", status_code=status.HTTP_200_OK)
 def getUserDetails(id):
     return {}
 
+
 @app.post("/v1/polls/create", status_code=status.HTTP_201_CREATED)
 def createPoll(BallotInfo: BallotCreate):
-    return {}
+    return createBallot(fbapp, conn, BallotInfo)
 
 
 @app.get("/v1/polls/details/{id}", status_code=status.HTTP_200_OK)
 def getPollDetails(id):
-    return {}
+    return getBallotInfo(fbapp, conn, id)
 
-#add authentication
+@app.get("/v1/polls/details/secure/{id}", status_code=status.HTTP_200_OK)
+def getSecureDeatils(id, passcode: str = ""):
+    print(passcode)
+    return getBallotSecure(conn, id, passcode)
+
+# add authentication
+
+
 @app.put("/v1/polls/close", status_code=status.HTTP_201_CREATED)
 def closePole(BallotInfo: BallotBaseInfo):
     return {}
 
-#add authentication
+# add authentication
+
+
 @app.post("/v1/ballots/give", status_code=status.HTTP_200_OK)
 def ballotVote(BasicVote: BallotVote):
     return{}
 
-#add authentication
+# add authentication
+
+
 @app.put("/v1/ballots/update", status_code=status.HTTP_201_CREATED)
 def updateBallot(UpdateVote: BallotVote):
     return {}

@@ -1,5 +1,6 @@
 import Head from "next/head";
 import React from "react";
+import Navbar from "./navbar";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,7 +15,10 @@ const Layout = ({ children }: LayoutProps) => {
         <meta name="description" content="A voting platform to analyse user interaction for preferencial voting outcomes" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <main>{children}</main>
+      <main>
+        <Navbar />
+        {children}
+      </main>
     </>
   )
 }

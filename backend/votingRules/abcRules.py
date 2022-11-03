@@ -3,11 +3,28 @@ from abcvoting.preferences import Profile, Voter
 from abcvoting import abcrules
 from abcvoting.output import output, INFO
 from typing import List, Dict
+from models import EarProfile, EarVoter
 import itertools
 import math
 from operator import itemgetter
 
 from numpy import sort
+
+
+"""
+ FOR EAR VOTING CLASS:
+
+ each profile has m candidates and n voters
+ each voter has a ballot
+ each voter has a weight initially 1
+ each voters ballot of m approvals [{},{},...,{}].
+ each j-th approval has up to m candidates ie [{1,2}, {4}, {3}, {}]
+ once there is a set of 0 candidates in it we know there is no more approvals by that voter after.
+
+ If a voters candidate is elected, their weights are reweighted to go down by the quota relational
+ (ie if 6 voters get a candidate elected on a quota of 3.2, each voters weight is now their previous weight *
+ (total num voters supporting candidate elected - quota)/(total num voters supporting candidate elected)
+"""
 
 def convertToAbcProfile(ballots: List[Dict[str, int]], numCandidates: int):
   """
@@ -27,34 +44,24 @@ def convertToAbcProfile(ballots: List[Dict[str, int]], numCandidates: int):
     profile.add_voter(vote)
   return profile
 
-def getAbcResult(rule: str, profile: Profile, numWinners: int):
+def convertToEarProfile(ballots: List[Dict[str, int]], numCandidates: int):
+  candidateNameList = []
+  for candidate in ballots[0]:
+    candidateNameList.append(candidate)
+  profile = EarProfile(cand_array=candidateNameList, committee_size=numCandidates)
+  for ballot in ballots:
+    newBase = [[] for _ in range(len(ballots[0]))]
+    for candidate in ballot:
+      newBase[ballot[candidate]].append(candidate)
+    voter = EarVoter(voteArray=newBase)
+    profile.add_voter(voter)
+  return profile
+
+
+def getAbcResult(rule: str, ballots: List[Dict[str, int]], numWinners: int):
   if rule == "EAR":
-    return ear(profile, numWinners)
+    profile = convertToEarProfile(ballots, numWinners)
+    return (profile, numWinners)
+  profile = convertToAbcProfile(ballots, numWinners)
   return abcrules.compute(rule, profile, numWinners)
 
-def ear(profile: Profile, committeeSize: int):
-  """
-    We are given a profile. The profile should have candidate names and should have a list of candidates.
-    to access candidate names get profile.cand_names
-  """
-  maximalRank = rankMaximalAbc(profile)
-  numVoters = len((profile._voters))
-  numCandidates = profile.num_cand
-  quota = (numVoters/(numCandidates + 1)) + ((1/(committeeSize + 1))*(math.floor(numVoters/(numCandidates + 1) + 1 - (numVoters/(numCandidates + 1)))))
-
-
-  profile.can
-  return
-
-def rankMaximalAbc(profile: Profile):
-  """
-    returns maximal rank of candidates which is used in the ear method.
-    For rank maximal in approval we mearly just need to calc approvals
-  """
-  candidateDict = {}
-  for candidate in profile.candidates:
-    candidateDict.setdefault(candidate, 0)
-  for voter in profile._voters:
-    for approvedCand in voter.approved:
-      candidateDict[approvedCand] += 1
-  return sorted(candidateDict, key=candidateDict.get, reverse=True)
