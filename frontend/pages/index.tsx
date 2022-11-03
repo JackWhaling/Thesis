@@ -1,24 +1,17 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+import type { NextPage } from "next";
+import Head from "next/head";
+import Image from "next/image";
 
 const Home: NextPage = () => {
   return (
     <div className="container">
-      <footer className="footer">
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className="logo">
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+      <div className="home-page">
+        <button className="sub-button button">Create Ballot</button>
+        <button className="main-button button">Vote</button>
+        <button className="sub-button button">My Ballots</button>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

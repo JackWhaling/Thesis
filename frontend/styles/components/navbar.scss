@@ -23,7 +23,6 @@
   }
 
   &__menu-list {
-    
     margin: 20px;
     display: flex;
     flex-direction: row;
@@ -36,7 +35,7 @@
     position: relative;
     opacity: 1;
     z-index: 4;
-    color: $constant-white;
+    color: $constant-purple-fader;
     align-content: center;
     align-self: center;
     align-items: center;
@@ -45,11 +44,11 @@
     cursor: pointer;
 
     &:after {
-      content: '';
+      content: "";
       position: absolute;
       width: 100%;
       transform: scaleX(0);
-      height: 2px;
+      height: 1px;
       bottom: -2px;
       left: 0;
       background-color: $constant-purple;
@@ -66,7 +65,7 @@
       transform: scaleX(1);
       transform-origin: bottom left;
     }
-    
+
     &--active {
       font-weight: bold;
       color: $constant-purple;

@@ -3,22 +3,23 @@ import { useRouter } from "next/router";
 import { useState, useContext } from "react";
 import { IUser, userContext, UserContextType } from "../../context/userState";
 import app, { auth } from "../../services/firebase";
-import { getRecord } from "../../services/axios";
-import { assert } from "console";
+import { postRecord } from "../../services/axios";
 
 const LoginForm = () => {
   const router = useRouter();
-  const { userValues, setUserValues } = useContext(userContext) as UserContextType;
+  const { userValues, setUserValues } = useContext(
+    userContext
+  ) as UserContextType;
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e:any) => {
+  const handleChange = (e: any) => {
     setUserValues((prevState: IUser | any) => ({
       ...prevState,
       [e.target.name]: e.target.value,
-    }))
-  }
+    }));
+  };
 
   const validationCheck = () => {
     if (password == "" || userValues === null || userValues.email == "") {
@@ -35,7 +36,7 @@ const LoginForm = () => {
       try {
         if (userValues === null) {
           setError("invalidCreds");
-          return
+          return;
         }
         await auth.signInWithEmailAndPassword(userValues.email, password);
         const user = auth.currentUser;
@@ -44,15 +45,16 @@ const LoginForm = () => {
         //const userDetails = await getRecord(uriPath);
         setUserValues((prevState: IUser | any) => ({
           ...prevState,
-          id: userID
-        }))
+          id: userID,
+        }));
+        router.push("/");
       } catch (err) {
         setError("invalidCreds");
       }
     }
-  }
+  };
   return (
-        <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <div className="inner-form">
         <div
           className={
@@ -110,7 +112,7 @@ const LoginForm = () => {
         <input type="submit" value="Login" className="submit-button" />
       </div>
     </form>
-  )
-}
+  );
+};
 
 export default LoginForm;
