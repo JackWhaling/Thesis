@@ -10,6 +10,7 @@ export interface IUser {
 export interface IBallots {
   id: string;
   name: string;
+  open: boolean;
 }
 
 export const INITIAL_USER_STATE = {
@@ -17,25 +18,25 @@ export const INITIAL_USER_STATE = {
   username: "",
   email: "",
   id: "",
-}
+};
 
 export type UserContextProviderProps = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
 export type UserContextType = {
-  userValues: IUser,
-  setUserValues: React.Dispatch<React.SetStateAction<IUser>>
-}
+  userValues: IUser;
+  setUserValues: React.Dispatch<React.SetStateAction<IUser>>;
+};
 
 export const userContext = createContext<UserContextType | null>(null);
 
 export const UserProvider = ({ children }: UserContextProviderProps) => {
-  const [userValues, setUserValues] = useState<IUser>(INITIAL_USER_STATE)
+  const [userValues, setUserValues] = useState<IUser>(INITIAL_USER_STATE);
 
   return (
     <userContext.Provider value={{ userValues, setUserValues }}>
       {children}
     </userContext.Provider>
-  )
-}
+  );
+};
