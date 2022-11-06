@@ -38,7 +38,11 @@ const Home: NextPage = () => {
           </>
         ) : (
           <>
-            <button className="sub-button button" value="/ballot/create">
+            <button
+              className="sub-button button"
+              value="/ballot/create"
+              onClick={(e) => clickPush(e)}
+            >
               Create Ballot
             </button>
             <button className="main-button button">Vote</button>

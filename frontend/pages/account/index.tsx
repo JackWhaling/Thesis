@@ -43,14 +43,22 @@ const Account: NextPage = () => {
         <h3 className="account-header__email">{userValues.email}</h3>
       </div>
       <div className="ballot-lists__open">
-        {openBallots.map((ballot) => (
-          <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
-        ))}
+        {openBallots.length === 0 ? (
+          <div className="ballot-list__none">You have no open ballots</div>
+        ) : (
+          closedBallots.map((ballot) => (
+            <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
+          ))
+        )}
       </div>
       <div className="ballot-lists__closed">
-        {closedBallots.map((ballot) => (
-          <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
-        ))}
+        {closedBallots.length === 0 ? (
+          <div className="ballot-list__none">You have no closed ballots</div>
+        ) : (
+          closedBallots.map((ballot) => (
+            <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
+          ))
+        )}
       </div>
     </div>
   );
