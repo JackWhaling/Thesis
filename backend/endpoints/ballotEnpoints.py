@@ -1,11 +1,12 @@
+from random import randint
 from fastapi import status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import auth
 from firebase_admin import exceptions
-from models import BallotCreate
-
+from models import BallotCreate, BallotVote
+import json
 import bcrypt
 import os
 from helpers import toJsonResponse
@@ -22,7 +23,8 @@ def createBallot(pgdb, postgresdb, ballotInfo: BallotCreate):
   live = ballotInfo.liveResult
   candidateList = ballotInfo.candidates
   numWinners = ballotInfo.numWinners
-  passcode = (ballotInfo.passcode).encode('utf-8')
+  randomPass = ''.join(["{}".format(randint(0,9)) for _ in range(0, 6)])
+  passcode = (randomPass).encode('utf-8')
   mySalt = os.getenv('SOME_SALT').encode('utf-8')
   hashedp = bcrypt.hashpw(passcode, mySalt)
   hashedp = hashedp.decode('utf-8')
@@ -43,7 +45,7 @@ def createBallot(pgdb, postgresdb, ballotInfo: BallotCreate):
       cur.close()
       return toJsonResponse(409, {})
     cur.close()
-    return toJsonResponse(201, {"ballotId": record})
+    return toJsonResponse(201, {"ballotId": record, "passcode": randomPass})
   except Exception as error:
     print(error)
     cur.close()
@@ -107,6 +109,43 @@ def getBallotSecure(postgresdb, ballotId, givenPasscode):
         "elected": elected
       }
       return toJsonResponse(200, responseBody)
+  except Exception as error:
+    print(error)
+    cur.close()
+    return toJsonResponse(409, {})
+
+def castVote(postgresdb, voteUpdate: BallotVote):
+  userId = voteUpdate.userToken
+  ballotId = voteUpdate.ballotId
+  ballot = voteUpdate.ballot
+
+  sqlBallotCheck = "SELECT candidates, closed FROM voteschema.ballot WHERE id = %s"
+  cur = postgresdb.cursor()
+  print(ballot)
+  try:
+    cur.execute(sqlBallotCheck, (ballotId, ))
+    record = cur.fetchone()
+    (candidates, closed) = record
+    if (sorted(list(ballot.keys())) != sorted(candidates)):
+      cur.close()
+      return toJsonResponse(404, {})
+    if (closed):
+      cur.close()
+      return toJsonResponse(403, {})
+    sqlVoteCheck = "SELECT vote_string, passcode FROM voteschema.vote WHERE voter_id = %s AND ballot_id = %s"
+    cur.execute(sqlVoteCheck, (userId, ballotId))
+    record = cur.fetchone()
+    (voteString, passcode) = record
+    if (voteString != None):
+      return toJsonResponse(403, {})
+    if (passcode != None):
+      return toJsonResponse(403, {})
+    sqlAddVote = "UPDATE voteschema.vote SET vote_string = %s WHERE voter_id = %s AND ballot_id = %s RETURNING voter_id"
+    newVoteString = json.dumps(ballot)
+    cur.execute(sqlAddVote, (newVoteString, userId, ballotId))
+    postgresdb.commit()
+    cur.close()
+    return toJsonResponse(200, {})
   except Exception as error:
     print(error)
     cur.close()

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState, useContext } from "react";
 import { IUser, userContext, UserContextType } from "../../context/userState";
 import app, { auth } from "../../services/firebase";
-import { postRecord } from "../../services/axios";
+import { getRecord, postRecord } from "../../services/axios";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -41,8 +41,9 @@ const LoginForm = () => {
         await auth.signInWithEmailAndPassword(userValues.email, password);
         const user = auth.currentUser;
         const userID = user?.uid;
-        //const uriPath = `users/details/${userID}`;
-        //const userDetails = await getRecord(uriPath);
+        const uriPath = `alive`;
+        const userDetails = await getRecord(uriPath);
+        console.log(userDetails)
         setUserValues((prevState: IUser | any) => ({
           ...prevState,
           id: userID,

@@ -12,7 +12,7 @@ import time
 from datetime import date, datetime
 import psycopg2
 import os
-from endpoints import createUserEntry, createBallot, getBallotInfo, getBallotSecure
+from endpoints import createUserEntry, createBallot, getBallotInfo, getBallotSecure, getUserEntry, castVote
 
 load_dotenv()
 
@@ -63,7 +63,7 @@ def createVoter(voterDetails: CreateVoter):
 
 @app.get("/v1/users/{id}", status_code=status.HTTP_200_OK)
 def getUserDetails(id):
-    return {}
+    return getUserEntry(fbdb=fbapp, postgresdb=conn, id=id)
 
 
 @app.post("/v1/polls/create", status_code=status.HTTP_201_CREATED)
@@ -90,9 +90,10 @@ def closePole(BallotInfo: BallotBaseInfo):
 # add authentication
 
 
-@app.post("/v1/ballots/give", status_code=status.HTTP_200_OK)
+@app.post("/v1/ballots/votes/give", status_code=status.HTTP_200_OK)
 def ballotVote(BasicVote: BallotVote):
-    return{}
+    print("hello")
+    return castVote(conn, BasicVote)
 
 # add authentication
 
@@ -100,7 +101,6 @@ def ballotVote(BasicVote: BallotVote):
 @app.put("/v1/ballots/update", status_code=status.HTTP_201_CREATED)
 def updateBallot(UpdateVote: BallotVote):
     return {}
-
 
 # logger (keeps track of API performance) Runs for each request of the api
 

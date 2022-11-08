@@ -1,2 +1,2 @@
-from .userEnpoints import createUserEntry
-from .ballotEnpoints import createBallot, getBallotInfo, getBallotSecure
+from .userEnpoints import createUserEntry, getUserEntry
+from .ballotEnpoints import createBallot, getBallotInfo, getBallotSecure, castVote

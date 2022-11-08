@@ -20,7 +20,6 @@ class BallotCreate(BaseModel):
     votingRule: str
     liveResult: bool
     numWinners: int
-    passcode: str
     candidates: List[str]
     
     class Config:

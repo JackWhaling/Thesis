@@ -1,0 +1,407 @@
+swagger: "2.0"
+info:
+  description: Jack Whaling personal website API
+  version: 1.0.0
+  title: Jack Whaling API
+  # put the contact info for your development or API team
+  contact:
+    email: jackwhaling98@gmail.com
+
+host : 3.106.142.227
+basePath: /v1/
+schemes:
+ - https
+
+paths:
+  /users/create:
+    post:
+      tags:
+        - users
+      summary: Create a user
+      description: |
+        Creates a user for the application so they can create polls and participate in more secure votes
+      parameters:
+        - in: body
+          name: user object
+          description: The user to create.
+          schema:
+            $ref: '#/definitions/UserCreate'
+      responses:
+        201:
+          description: Account successfully create
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: userId
+        400:
+          description: Bad request
+        409:
+          description: Account already exists
+  /users/delete:
+    delete:
+      tags:
+        - users
+      summary: deletes user
+      description: |
+        Deletes a user
+      parameters:
+        - in: body
+          name: userId
+          description: The user to delete.
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: userId
+      responses:
+        204:
+          description: Account deleted successfully
+        404:
+          description: Bad request
+        409:
+          description: Account doesn't exist
+  /polls/create:
+    post:
+      tags:
+        - polls
+      summary: create a new poll
+      description: |
+        Creates a new poll given poll settings
+      parameters:
+        - in: body
+          name: poll settings object
+          description: new poll to create with its settings
+          schema:
+            $ref: '#/definitions/PollCreate'
+      responses:
+        201:
+          description: Poll created successfully
+          schema:
+            type: object
+            properties:
+              pollId:
+                type: string
+                description: returns pollId
+              pollCode:
+                type: string
+                description: returns first level code to enter poll.
+        404:
+          description: Bad request
+        500:
+          description: Something went wrong serverside creating poll
+  /polls/details/{id}:
+    get:
+      tags:
+        - polls
+      summary: get poll details by id
+      description: |
+        Gets the poll by the id in the path of the uri
+      parameters:
+        - in: path
+          name: id
+          description: the id string of the poll you want to get information from
+          type: string
+          required: true
+        - in: query
+          name: poll passcode
+          description: the passcode to connect to the poll you want information from
+          type: string
+      responses:
+        200:
+          description: Password correct and returns poll details
+          schema:
+            $ref: '#/definitions/PollDetails'
+        404:
+          description: bad request
+        403:
+          description: wrong passcode
+  /ballots/votes/give:
+    post:
+      tags:
+        - ballots
+      summary: post a ballot by poll id
+      description: |
+        Given a user identification, poll id and required information, cast a ballot
+      parameters:
+        - in: body
+          name: user ballot
+          description: ballot information, ballot id and other required details
+          schema:
+            $ref: '#/definitions/Vote'
+      responses:
+        200:
+          description: ballot processed correctly
+        404:
+          description: bad request
+        403:
+          description: not allowed to vote
+        406:
+          description: already voted
+  /ballots/votes/update:
+    put:
+      tags:
+        - ballots
+      summary: update a ballot by user
+      description: |
+        Allows a user to update their previous ballot decisions if its allowed
+      parameters:
+        - in: body
+          name: user ballot
+          description: ballot information and other required info.
+          schema:
+            $ref: '#/definitions/Vote'
+      responses:
+        201:
+          description: ballot processed correctly
+        404:
+          description: bad request
+        403:
+          description: not allowed to vote
+        406:
+          description: can't update votes
+  /polls/close:
+    put:
+      tags:
+        - polls
+      summary: close poll
+      description: |
+        Given poll details, closes a poll to be anaylzed
+      parameters:
+        - in: body
+          name: poll info
+          description: id of poll and poll admin token to close.
+          schema:
+            $ref: '#/definitions/PollAuthorize'
+      responses:
+        201:
+          description: poll closed successfully
+        403:
+          description: can't close poll
+        404:
+          description: bad request
+  /results/poll:
+    post:
+      tags:
+        - voting results
+      summary: get the results of a certain poll
+      description: |
+        Given a voting rule and an elections id along with election get the results. Election must already be closed or allow for live updates
+      parameters:
+        - in: body
+          name: poll and user info
+          description: give required information to check for authorization of accessing poll data
+          schema: 
+            $ref: '#/definitions/PollAuthorize'
+      responses:
+        200:
+          description: returns poll data
+          schema:
+            $ref: '#/definitions/PollResult'
+        404:
+          description: bad request
+        403:
+          description: unauthorized request
+  /results/election:
+    get:
+      tags:
+        - voting results
+      summary: given all election information and rule, returns result
+      description: |
+        Given ballots of all voters, number of winners and the voting rule, returns the result of an election.
+      parameters:
+        - in: body
+          name: all user votes
+          description: give all ballots of all users at once and return result
+          schema:
+            $ref: '#/definitions/AllVotes'
+      responses:
+        200:
+          description: returns poll data
+          schema:
+            $ref: '#/definitions/PollResult'
+        404:
+          description: bad request
+        403:
+          description: unauthorized request
+  /results/representation:
+    post:
+      tags:
+        - voting results
+      summary: given an election, return result for an individual voter
+      description: |
+        summarizes the representation of a voter given their ballot in an election
+      parameters:
+        - in: body
+          name: user info
+          description: user information to retreieve data
+          schema:
+            $ref: '#/definitions/PollAuthorize'
+      responses:
+        200:
+          description: returns result and representation
+          schema:
+            $ref: '#/definitions/VoterRep'
+        404:
+          description: bad request
+        403:
+          description: unauthorized request
+definitions:
+  UserCreate:
+    type: object
+    required:
+    - email
+    - password
+    - username
+    - age
+    properties:
+      email:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+      age:
+        type: integer
+  PollCreate:
+    type: object
+    required:
+    - ballotType
+    - inviteMethod
+    - votingRule
+    - liveResult
+    - numWinners
+    - candidates
+    properties:
+      ballotType:
+        type: string
+        enum: [strictOrdering, approval, weakOrdering]
+      inviteMethod:
+        type: string
+        enum: [doubleFactor, singleFactor]
+      votingRule:
+        type: string
+        example: "EAR"
+      liveResult:
+        type: boolean
+      numWinners:
+        type: integer
+        example: 3
+      candidates:
+        type: array
+        items:
+          type: string
+          example: ["michael, liam, ben, jack, lielle, vanessa, tonya"]
+  PollDetails:
+    type: object
+    required:
+    - ballotType
+    - candidates
+    - liveResult
+    - pollId
+    properties:
+      ballotType:
+        type: string
+        enum: [strictOrdering, approval, weakOrdering]
+      liveResult:
+        type: boolean
+      candidates:
+        type: array
+        items:
+          type: string
+          example: ["michael, liam, ben, jack, lielle, vanessa, tonya"]
+      pollId:
+        type: string
+  PollResult:
+    type: object
+    required:
+    - candidateResults
+    - numWinners
+    properties:
+      candidateResults:
+        type: array
+        items:
+          type: string
+          example: ["lielle, jack, tonya, ben, liam, michael, tonya"]
+      numWinners:
+        type: integer
+        example: 3
+  VoterRep:
+    type: array
+    items:
+      $ref: '#/definitions/SingleRep'
+    example:
+      - michael: 0.00
+        jack: 1.00
+        lielle: 0.20
+        tonya: 0.05
+        ben: 0.00
+        liam: 0.00
+  SingleRep:
+    type: object
+    properties:
+      candidate:
+        type: string
+      repValue:
+        type: number
+  AllVotes:
+    type: array
+    items:
+      $ref: '#/definitions/Ballot'
+  Ballot:
+    type: object
+    properties:
+      candidate:
+        type: string
+      value:
+        type: integer
+    example:
+      - michael: 2
+        jack: 1
+        lielle: 1
+        tonya: 4
+        liam: 3
+        ben: 0
+      - michael: 1
+        jack: 3
+        lielle: 2
+        tonya: 0
+        liam: 3
+        ben: 1
+  Vote:
+    type: object
+    required:
+    - userToken
+    - ballotId
+    - ballot
+    properties:
+      userToken:
+        type: string
+      ballotId:
+        type: string
+      ballot:
+        type: object
+        properties:
+          candidate:
+            type: string
+          value:
+            type: integer
+        example:
+          michael: 2
+          jack: 1
+          lielle: 1
+          tonya: 4
+          liam: 3
+          ben: 0
+  PollAuthorize:
+    type: object
+    required:
+    - userToken
+    - ballotId
+    properties:
+      userToken:
+        type: string
+      ballotId:
+        type: string

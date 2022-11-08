@@ -44,15 +44,24 @@ const SignupForm = () => {
     e.preventDefault();
     if (validationCheck()) {
       try {
-        const postData = {
-          username: userValues.username,
-          email: userValues.email,
-          password: password,
-        };
-        // const uriValue = "users/create";
-        // const res = await postRecord(uriValue, postData);
+
         // const userData = res.data;
-        auth.createUserWithEmailAndPassword(postData.email, postData.password)
+        auth.createUserWithEmailAndPassword(userValues.email, password).then(async (user) => {
+          setUserValues((prevState: IUser | any) => ({
+            ...prevState,
+            id: user.user?.uid
+          }));
+          const postData = {
+            email: userValues.email,
+            userId: user.user?.uid,
+          };
+          const uriValue = "users/create";
+          const res = await postRecord(uriValue, postData);
+          console.log(res)
+          router.push("/")
+        }).catch((err) => {
+          setError("somethingWrong")
+        })
         // if (userData.status == "success") {
         //   setUserValues((prevState) => ({
         //     ...prevState,
@@ -65,7 +74,6 @@ const SignupForm = () => {
         // } else {
         //   setError("somethingWrong");
         // }
-        router.push("/")
       } catch (err) {
         setError("somethingWrong");
       }
