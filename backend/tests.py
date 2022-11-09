@@ -4,7 +4,7 @@ from typing import List, Dict
 from abcvoting import abcrules
 
 if __name__=="__main__":
-  numCands = 4
+  numCands = 2
   votes = [
     {
       "Jack": 1,
@@ -26,7 +26,8 @@ if __name__=="__main__":
     }
   ]
   newProf = convertToAbcProfile(votes, numCands)
-  otherProf = convertToEarProfile(votes, numCands)
+  otherProf = convertToEarProfile(votes, 2)
+  print(otherProf.earResult())
 
   for voter in otherProf.voters:
     print(voter.voteArray)

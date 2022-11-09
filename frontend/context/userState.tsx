@@ -5,6 +5,8 @@ export interface IUser {
   email: string;
   username: string;
   ballots: IBallots[];
+  ownedBallots: IBallots[];
+  postgresId: bigint | null;
 }
 
 export interface IBallots {
@@ -15,9 +17,11 @@ export interface IBallots {
 
 export const INITIAL_USER_STATE = {
   ballots: [],
+  ownedBallots: [],
   username: "",
   email: "",
   id: "",
+  postgresId: null
 };
 
 export type UserContextProviderProps = {

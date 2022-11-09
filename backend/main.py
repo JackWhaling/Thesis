@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, Request
+from fastapi import FastAPI, status, Request, Header
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
@@ -72,11 +72,12 @@ def createPoll(BallotInfo: BallotCreate):
 
 
 @app.get("/v1/polls/details/{id}", status_code=status.HTTP_200_OK)
-def getPollDetails(id):
-    return getBallotInfo(fbapp, conn, id)
+def getPollDetails(id, request: Request):
+    headerPass = str(request.headers.get("passcode"))
+    return getBallotInfo(conn, id, headerPass)
 
 @app.get("/v1/polls/details/secure/{id}", status_code=status.HTTP_200_OK)
-def getSecureDeatils(id, passcode: str = ""):
+def getSecureDeatils(id, passcode: str = "", dfpasscode: str = ""):
     print(passcode)
     return getBallotSecure(conn, id, passcode)
 

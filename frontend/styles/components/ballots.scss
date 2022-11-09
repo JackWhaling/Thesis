@@ -1,0 +1,61 @@
+@import "../common/variables";
+
+.vote {
+  &__cand-card {
+    display: flex;
+    flex-direction: row;
+    width: 50%;
+    justify-content:space-between;
+    border: 1px solid black;
+
+    input {
+      width: 50px;
+    }
+  }
+  &__cand-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+  }
+  &__cand-name {
+    margin-right: 8px;
+  }
+
+  &__title {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    border-bottom: 1px solid black;
+  }
+
+  &__container {
+    margin: 2rem;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
+  &__submit {
+    width: 200px;
+    margin: 8px;
+    align-self: center;
+  }
+}
+
+.ballot-lists {
+  &__open {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .ballot__card {
+      background: $constant-blue;
+      margin: 8px;
+      width: auto;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  }
+}

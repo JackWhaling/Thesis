@@ -1,6 +1,9 @@
 import { NextPage } from "next";
-import React, { createRef, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import React, { createRef, useContext, useEffect, useRef, useState } from "react";
 import Select from "react-select";
+import { IBallots, userContext, UserContextType } from "../../../context/userState";
+import { postRecord } from "../../../services/axios";
 
 interface IBallotForm {
   name: string;
@@ -8,6 +11,7 @@ interface IBallotForm {
   liveResults: boolean;
   voteMethod: string | null;
   doubleAuth: boolean;
+  numWinners: number,
 }
 
 const DEFAULT_FORM = {
@@ -16,11 +20,12 @@ const DEFAULT_FORM = {
   rule: null,
   voteMethod: null,
   doubleAuth: false,
+  numWinners: 2,
 };
 
 const VOTING_METHODS = [
-  { value: "strict", label: "Strict Preferences" },
-  { value: "weak", label: "Weak Preferences" },
+  { value: "strictOrdering", label: "Strict Preferences" },
+  { value: "weakOrdering", label: "Weak Preferences" },
   { value: "approval", label: "Approval Ballot" },
 ];
 
@@ -34,10 +39,16 @@ const STRICT_RULES = [{ value: "EAR", label: "Expanding Approvals Rule" }];
 const WEAK_RULES = [{ value: "EAR", label: "Expanding Approvals Rule" }];
 
 const CreateBallot: NextPage = () => {
-  const [formState, setFormState] = useState<IBallotForm | null>(DEFAULT_FORM);
+  const [formState, setFormState] = useState<IBallotForm>(DEFAULT_FORM);
   const [candidates, setCandidates] = useState<string[]>([]);
   const [currCand, setCurrCand] = useState<string>("");
   const [selectedRule, setSelectedRule] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null)
+  const [successBallot, successBallotPass] = useState<any | null>(null);
+  const { userValues, setUserValues } = useContext(
+    userContext
+  ) as UserContextType;
+  const router = useRouter()
 
   const handleChange = (e: any) => {
     setFormState((prevState: IBallotForm | any) => ({
@@ -46,13 +57,50 @@ const CreateBallot: NextPage = () => {
     }));
   };
 
+  const submitForm = () => {
+    if (validationCheck()) {
+      try {
+        const postData = {
+          ballotType: formState?.voteMethod,
+          ballotName: formState?.name,
+          creatorId: userValues.postgresId,
+          inviteMethod: formState?.doubleAuth ? "doubleFactor" : "singleFactor",
+          votingRule: formState?.rule,
+          liveResult: formState?.liveResults,
+          numWinners: formState?.numWinners,
+          candidates: candidates,
+        }
+        const uriValue = "polls/create"
+        const res = postRecord(uriValue, postData)
+        res.then((data) => {
+          console.log(data)
+          if (data.status === 201) {
+            let newBallot: IBallots = {id: data.data.ballotId, name: formState.name, open: true}
+            successBallotPass({pass: data.data.passcode, id: data.data.ballotId})
+          }
+        })
+      } catch(err) {
+        setError("Something happened on our end, please try again!")
+      }
+    }
+  }
+
   const addCandidate = (e: any) => {
+    if (candidates.includes(e.target.value)) {
+      setError("Candidate already exists")
+      setCurrCand("")
+      return
+    }
+
+    if (e.target.value == "") {
+      setError("Cant have an empty candidate")
+      return
+    }
     setCandidates((prevState: string[] | any) => [
       ...prevState,
       e.target.value,
     ]);
     setCurrCand("");
-    console.log(candidates);
   };
 
   const handleCandChange = (e: any) => {
@@ -94,10 +142,25 @@ const CreateBallot: NextPage = () => {
     if (candidates?.length < 2) {
       return false;
     }
+
+    if (formState.numWinners < 2) {
+      return false
+    }
+    return true
   };
 
   return (
     <div className="page-container">
+      {successBallot ? 
+        <div>
+          <h3>Ballot Created (save the following information)</h3>
+          <label>Passcode:</label>
+          <p>{successBallot.pass}</p>
+          <label>Id</label>
+          <p>{successBallot.id}</p>
+          <button onClick={(e) => router.push("/")}>Go Home</button>
+        </div> 
+      : 
       <form className="ballot-form">
         <div
           className={formState?.name == "" ? "input" : "input input--has-value"}
@@ -118,10 +181,11 @@ const CreateBallot: NextPage = () => {
             <input
               className="input__field"
               name="candidate"
-              type="candidate"
+              type="text"
               placeholder="Add new candidate"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
+                  setError(null)
                   addCandidate(e);
                 }
               }}
@@ -144,6 +208,20 @@ const CreateBallot: NextPage = () => {
               </div>
             ))}
           </div>
+        </div>
+        <div
+          className={formState?.numWinners == null ? "input" : "input input--has-value"}
+        >
+          <input
+            className="input__field"
+            name="numWinners"
+            type="number"
+            onChange={(e) => {
+              handleChange(e);
+            }}
+            value={formState?.numWinners}
+          />
+          <label className="input__label">Committee Size (min: 2)</label>
         </div>
         <div className="select-component">
           <label className="select-label">Voting Method</label>
@@ -179,11 +257,17 @@ const CreateBallot: NextPage = () => {
           <div className="info-hover">?</div>
         </div>
         <input
-          type="submit"
+          type="button"
+          disabled={!validationCheck()}
           value="Create Ballot"
-          onClick={(e) => e.preventDefault()}
+          onClick={(e) => {
+            e.preventDefault()
+            submitForm()}
+          }
         />
       </form>
+      }
+      {error ? <div className="error">{error}</div> : <></>}
     </div>
   );
 };

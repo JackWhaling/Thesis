@@ -99,14 +99,14 @@ export const postRecord = async (relativeUri: string, data: any) => {
   }
 };
 
-export const getRecord = async (relativeUri: string) => {
+export const getRecord = async (relativeUri: string, config: any) => {
   let responseContent: any = {
     status: "",
     message: "",
     data: "",
   };
   try {
-    let response = await API.get(relativeUri)
+    let response = await API.get(relativeUri, config)
       .then((response) => {
         responseContent = {
           status: response.status,

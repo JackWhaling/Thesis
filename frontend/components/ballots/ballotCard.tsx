@@ -6,10 +6,12 @@ interface IBallotCard {
 }
 
 const BallotCard = ({ name, id }: IBallotCard) => {
+
+
   return (
-    <a className="ballot-card" href={`ballot/${id}`}>
-      {name}
-    </a>
+    <div className="ballot-card">
+      <strong>{name}</strong> | Ballot Id: {id}
+    </div>
   );
 };
 

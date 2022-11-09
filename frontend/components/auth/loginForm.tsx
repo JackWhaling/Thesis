@@ -4,6 +4,7 @@ import { useState, useContext } from "react";
 import { IUser, userContext, UserContextType } from "../../context/userState";
 import app, { auth } from "../../services/firebase";
 import { getRecord, postRecord } from "../../services/axios";
+import { IBallots } from "../../context/userState";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -41,12 +42,32 @@ const LoginForm = () => {
         await auth.signInWithEmailAndPassword(userValues.email, password);
         const user = auth.currentUser;
         const userID = user?.uid;
-        const uriPath = `alive`;
+        const uriPath = `users/${userID}`;
         const userDetails = await getRecord(uriPath);
-        console.log(userDetails)
+        const userData = userDetails.data;
+        let ownedBallots: IBallots[] = []
+        let userBallots: IBallots[] = []
+        userData.userBallots.forEach((ballot: any) => {
+          var newBallot: IBallots = {id: "", name: "", open: false}
+          newBallot.name = ballot.ballotName
+          newBallot.id = ballot.ballotId
+          newBallot.open = !ballot.closed
+          userBallots.push(newBallot)
+        })
+
+        userData.ownedBallots.forEach((ballot: any) => {
+          var newBallot: IBallots = {id: "", name: "", open: false}
+          newBallot.name = ballot.ballotName
+          newBallot.id = ballot.ballotId
+          newBallot.open = !ballot.closed
+          ownedBallots.push(newBallot)
+        })
         setUserValues((prevState: IUser | any) => ({
           ...prevState,
           id: userID,
+          postgresId: userData.postId,
+          ballots: userBallots,
+          ownedBallots: ownedBallots,
         }));
         router.push("/");
       } catch (err) {

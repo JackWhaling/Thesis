@@ -1,0 +1,59 @@
+@import "../common/variables";
+
+.list-added-candidates {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  .added-cand {
+    &__container{
+      display: flex;
+      flex-direction: row;
+      background: $constant-purple;
+      padding: 8px;
+      font-weight: bold;
+      color: $constant-white;
+      margin: 4px;
+      border-radius: 20px;
+      justify-content: space-between;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $constant-red;
+      }
+
+      &:hover .added-cand__remove {
+        display: block;
+      }
+    }
+
+    &__name{
+      padding-left: 8px;
+      margin-right: 8px;
+    }
+
+    &__remove {
+      padding-right: 8px;
+      justify-content: center;
+      display: none;
+    }
+  }
+}
+
+.input-checkbox {
+  display: flex;
+  flex-direction: row;
+
+  .info-hover {
+    background-color: $constant-blue;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    text-align: center;
+    font-size: smaller;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+  }
+}
