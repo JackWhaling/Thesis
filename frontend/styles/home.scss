@@ -13,33 +13,57 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .sub-button {
-  width: 200px;
-  height: 32px;
-  background: $constant-purple-fader;
+  margin-bottom: 16px;
+  width: 250px;
+  height: 64px;
+  background: white;
+  border: 2px solid $constant-purple !important;
+  color: $constant-purple !important;
+
+  &:hover {
+    background-color: $constant-purple;
+    color: white !important;
+  }
+
+  transition: all .2s ease-in-out;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
 .button {
   font-weight: bolder;
   border: none;
-  border-radius: 20px;
+  border-radius: 8px;
   cursor: pointer;
   color: white;
 }
 
 .main-button {
-  width: 250px;
-  height: 38px;
-  margin: 30px;
+  margin-bottom: 16px;
+  width: 350px;
+  height: 64px;
   background: $constant-purple;
+  padding: 8px;
+  transition: all .2s ease-in-out;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
 main {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 
   .container {
     justify-self: center;

@@ -7,10 +7,10 @@ info:
   contact:
     email: jackwhaling98@gmail.com
 
-host : 3.106.142.227
+host : localhost:8000
 basePath: /v1/
 schemes:
- - https
+ - http
 
 paths:
   /users/create:
@@ -63,6 +63,7 @@ paths:
           description: Bad request
         409:
           description: Account doesn't exist
+
   /polls/create:
     post:
       tags:
@@ -205,7 +206,7 @@ paths:
         403:
           description: unauthorized request
   /results/election:
-    get:
+    post:
       tags:
         - voting results
       summary: given all election information and rule, returns result
@@ -347,29 +348,39 @@ definitions:
       repValue:
         type: number
   AllVotes:
-    type: array
-    items:
-      $ref: '#/definitions/Ballot'
-  Ballot:
     type: object
     properties:
-      candidate:
+      rawData:
         type: string
-      value:
-        type: integer
-    example:
-      - michael: 2
-        jack: 1
-        lielle: 1
-        tonya: 4
-        liam: 3
-        ben: 0
-      - michael: 1
-        jack: 3
-        lielle: 2
-        tonya: 0
-        liam: 3
-        ben: 1
+        example: "1: c1,c2,c3,e1,e2,e3,e4,d1\n1: c2,c3,c1,e1,e2,e3,e4,d1\n1: c3,c1,d1,c2,e1,e2,e3,e4\n6: e1,e2,e4,e4,c1,c2,c3,d1"
+      numWinners:
+        type: number
+        example: 3
+      voteRule:
+        type: string
+        example: "EAR"
+  # Ballot:
+  #   type: object
+  #   properties:
+  #     candidate:
+  #       type: string
+  #     value:
+  #       type: integer
+  #   example:
+  #     - michael: 2
+  #       jack: 1
+  #       lielle: 1
+  #       tonya: 4
+  #       liam: 3
+  #       ben: 0
+  #       vanessa: 1
+  #     - michael: 1
+  #       jack: 3
+  #       lielle: 2
+  #       tonya: 0
+  #       liam: 3
+  #       ben: 1
+  #       vanessa: 0
   Vote:
     type: object
     required:
@@ -395,6 +406,7 @@ definitions:
           tonya: 4
           liam: 3
           ben: 0
+          vanessa: 1
   PollAuthorize:
     type: object
     required:

@@ -39,3 +39,8 @@ class BallotVote(BaseModel):
     userToken: str
     ballotId: str
     ballot: Dict[str, int]
+
+class BallotRaw(BaseModel):
+    voteRule: str
+    numWinners: str
+    rawData: str

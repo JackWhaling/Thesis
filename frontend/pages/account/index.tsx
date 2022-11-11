@@ -97,14 +97,16 @@ const Account: NextPage = () => {
         ) : (
           <div className="open-ballot-container">
             <h4>Your Open Ballots:</h4>
-            {openBallots.map((ballot: IBallots) => {
-              console.log(ballot)
-              return (
-              <div className="ballot__card" key={ballot.id} onClick={(e) => showVoteModal(ballot.id)}>
-                <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
-              </div>
-            )}
-            )}
+            <div className="card-container">
+              {openBallots.map((ballot: IBallots) => {
+                console.log(ballot)
+                return (
+                <div className="ballot__card" key={ballot.id} onClick={(e) => showVoteModal(ballot.id)}>
+                  <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
+                </div>
+              )}
+              )}
+            </div>
           </div>
         )
         }

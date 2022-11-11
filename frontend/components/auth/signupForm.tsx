@@ -100,6 +100,7 @@ const SignupForm = () => {
             }}
             value={userValues.email}
           />
+          <div className="cut"></div>
           <label className="input__label">Email</label>
         </div>
         <div
@@ -119,6 +120,7 @@ const SignupForm = () => {
             }}
             value={password}
           />
+          <div className="cut"></div>
           <label className="input__label">Password</label>
           {/* {showPassword ? (
             <ViewIcon
@@ -149,6 +151,7 @@ const SignupForm = () => {
             }}
             value={userValues.username}
           />
+          <div className="cut"></div>
           <label className="input__label">Username</label>
         </div>
         {error == "missingFields" && (

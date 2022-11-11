@@ -94,6 +94,7 @@ const Home: NextPage = () => {
             >
               Sign Up
             </button>
+            <button className="sub-button button" value="/ballot/raw" onClick={(e) => clickPush(e)}>Enter Raw Ballot</button>
           </>
         ) : (
           <>
@@ -106,6 +107,7 @@ const Home: NextPage = () => {
             </button>
             <button className="main-button button" onClick={showVoteModal}>Vote</button>
             <button className="sub-button button">My Ballots</button>
+            <button className="sub-button button" value="/ballot/raw" onClick={(e) => clickPush(e)}>Enter Raw Ballot</button>
           </>
         )}
       </div>
@@ -129,6 +131,7 @@ const Home: NextPage = () => {
               }}
               value={voteState?.ballotId}
             />
+            <div className="cut"></div>
             <label className="input__label">Ballot id</label>
           </div>
           <div
@@ -144,6 +147,7 @@ const Home: NextPage = () => {
               }}
               value={voteState?.ballotPass}
             />
+            <div className="cut cut-xl"></div>
             <label className="input__label">Ballot Passcode</label>
           </div>
           {showIncorrect && <label>Incorrect Password or Id</label>}

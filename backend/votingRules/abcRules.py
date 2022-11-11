@@ -55,6 +55,7 @@ def convertToEarProfile(ballots: List[Dict[str, int]], numCandidates: int):
       newBase[ballot[candidate]].append(candidate)
     voter = EarVoter(voteArray=newBase)
     profile.add_voter(voter)
+  print(profile)
   return profile
 
 

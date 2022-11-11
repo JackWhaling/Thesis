@@ -1,0 +1,151 @@
+@import "../common/variables";
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+
+  .inner-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0px 0px 18px -6px rgb(101, 101, 101);
+  }
+}
+
+.input {
+  margin: 24px 0;
+  height: 50px;
+  position: relative;
+  width: 100%;
+
+  .cut {
+    background-color: $constant-background;
+    border-radius: 10px;
+    height: 20px;
+    left: 20px;
+    position: absolute;
+    top: -20px;
+    transform: translateY(0);
+    transition: transform 200ms;
+    width: 86px;
+  }
+
+  .cut-short {
+    width: 60px;
+  }
+
+  .cut-large {
+    width: 108px;
+  }
+
+  .cut-xl {
+    width: 140px;
+  }
+
+  .cut-xxl {
+    width: 200px;
+  }
+}
+
+.input-textarea {
+  min-height: 50px;
+  height: fit-content;
+}
+
+.input__field {
+  background-color: $constant-white;
+  border-radius: 12px;
+  border: 0;
+  box-sizing: border-box;
+  color: $constant-purple;
+  font-size: 18px;
+  height: 100%;
+  outline: 0;
+  padding: 4px 20px 0;
+  width: 100%;
+}
+
+.input__field:focus ~ .cut,
+.input__field:not(:placeholder-shown) ~ .cut {
+  transform: translateY(8px);
+}
+
+.input__field:focus ~ .input__label,
+.input__field:not(:placeholder-shown) ~ .input__label {
+  transform: translateY(-30px) translateX(10px) scale(0.75);
+}
+
+.input__field:not(:placeholder-shown) ~ .placeholder {
+  color: #808097;
+}
+
+.input__field:focus ~ .placeholder {
+  color: #dc2f55;
+}
+
+.input__field::placeholder {
+  color: $constant-white;
+  opacity: 1;
+}
+
+
+.input__label {
+  color: $constant-purple;
+  letter-spacing: 0;
+  left: 20px;
+  line-height: 14px;
+  pointer-events: none;
+  position: absolute;
+  transform-origin: 0 50%;
+  transition: transform 200ms, color 200ms;
+  top: 20px;
+}
+
+.ballot-form {
+  padding: 24px;
+  border-radius: 8px;
+  background: $constant-background;
+  box-shadow: 0px 0px 20px -6px grey;
+}
+
+.submit {
+  border-radius: 8px;
+  padding: 8px;
+  border: 2px solid $constant-blue;
+  background: $constant-background;
+  color: $constant-blue;
+  cursor: pointer;
+
+  &:disabled {
+    border: 2px solid $constant-blue-fader;
+    color: $constant-blue-fader;
+    cursor:auto;
+
+    &:hover {
+      background: $constant-background;
+      color: $constant-blue-fader
+    }
+  }
+
+  &:hover {
+    background: $constant-blue;
+    color: $constant-background;
+  }
+}
+
+/* TEST DATA
+1: c1,c2,c3,e1,e2,e3,e4,d1
+1: c2,c3,c1,e1,e2,e3,e4,d1
+1: c3,c1,d1,c2,e1,e2,e3,e4
+6: e1,e2,e4,e4,c1,c2,c3,d1
+*/

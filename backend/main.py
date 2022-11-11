@@ -7,12 +7,12 @@ from firebase_admin import firestore
 from pydantic import BaseModel
 from typing import List, Dict
 from dotenv import load_dotenv
-from models import BallotBaseInfo, BallotCreate, BallotVote, CreateVoter
+import models
 import time
 from datetime import date, datetime
 import psycopg2
 import os
-from endpoints import createUserEntry, createBallot, getBallotInfo, getBallotSecure, getUserEntry, castVote
+from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, getBallotSecure, getUserEntry, castVote
 
 load_dotenv()
 
@@ -57,7 +57,7 @@ def alive():
 
 
 @app.post("/v1/users/create", status_code=status.HTTP_201_CREATED)
-def createVoter(voterDetails: CreateVoter):
+def createVoter(voterDetails: models.CreateVoter):
     return createUserEntry(fbdb=fbapp, postgresdb=conn, userInfo=voterDetails)
 
 
@@ -67,7 +67,7 @@ def getUserDetails(id):
 
 
 @app.post("/v1/polls/create", status_code=status.HTTP_201_CREATED)
-def createPoll(BallotInfo: BallotCreate):
+def createPoll(BallotInfo: models.BallotCreate):
     return createBallot(fbapp, conn, BallotInfo)
 
 
@@ -85,22 +85,26 @@ def getSecureDeatils(id, passcode: str = "", dfpasscode: str = ""):
 
 
 @app.put("/v1/polls/close", status_code=status.HTTP_201_CREATED)
-def closePole(BallotInfo: BallotBaseInfo):
+def closePoll(BallotInfo: models.BallotBaseInfo):
     return {}
+
+@app.post("/v1/results/election", status_code=status.HTTP_200_OK)
+def definePoll(RawData: models.BallotRaw):
+    print(RawData)
+    return getResultsRaw(RawData)
 
 # add authentication
 
 
 @app.post("/v1/ballots/votes/give", status_code=status.HTTP_200_OK)
-def ballotVote(BasicVote: BallotVote):
-    print("hello")
+def ballotVote(BasicVote: models.BallotVote):
     return castVote(conn, BasicVote)
 
 # add authentication
 
 
 @app.put("/v1/ballots/update", status_code=status.HTTP_201_CREATED)
-def updateBallot(UpdateVote: BallotVote):
+def updateBallot(UpdateVote: models.BallotVote):
     return {}
 
 # logger (keeps track of API performance) Runs for each request of the api

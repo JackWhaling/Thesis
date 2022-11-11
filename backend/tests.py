@@ -25,7 +25,10 @@ if __name__=="__main__":
       "Revi": 0
     }
   ]
-  newProf = convertToAbcProfile(votes, numCands)
+
+
+  
+  ## add test cases for randomized 1-1000 voters
   otherProf = convertToEarProfile(votes, 2)
   print(otherProf.earResult())
 

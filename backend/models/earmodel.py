@@ -8,7 +8,7 @@ class EarProfile:
         self.candidates = cand_array
         self.electedSet = []
         self.candidate_point_dict = {}
-        self.committee_size = committee_size
+        self.committee_size = int(committee_size)
         self.voters = []
         for candidate in cand_array:
             self.candidate_point_dict.setdefault(0, candidate)
@@ -35,6 +35,7 @@ class EarProfile:
         candidatesWithQuota = []
         for k, v in cand_pont_dict.items():
             if v > quota:
+                print(v)
                 candidatesWithQuota.append(k)
         if len(candidatesWithQuota) == 0:
             return []
@@ -45,7 +46,7 @@ class EarProfile:
         numVoters = len(self.voters)
         numCands = len(self.candidates)
         k = self.committee_size
-        quota = (numVoters/(k+1)) + ((1/(numCands+1))*(floor(numVoters/(k + 1)) + 1 - (numVoters/(k + 1))))
+        quota: int = (numVoters/(k+1)) + ((1/(numCands+1))*(floor(numVoters/(k + 1)) + 1 - (numVoters/(k + 1))))
         electedCommittee = []
         currentCands = defaultdict(float)
         currentCandsSupporters = defaultdict(list)
@@ -53,42 +54,40 @@ class EarProfile:
             currentCands[candidate] = 0
             currentCandsSupporters[candidate] = []
         currJ = 0 
-
         while (len(electedCommittee) < k):
             candidatesWithQuota = []
-            while (candidatesWithQuota == []):
-                for voter in self.voters:
-                    for cand in voter.voteArray[currJ]:
-                        currentCandsSupporters[cand].append(voter)
-                        currentCands[cand] += voter.weight
-                    candidatesWithQuota = self.checkCandidateQuota(quota=quota, cand_pont_dict=currentCands)
-                if (len(candidatesWithQuota) + len(electedCommittee) <= k):
-                    for c in candidatesWithQuota:
-                        electedCommittee.append(c)
-                        for voter in currentCandsSupporters[c]:
-                            voter.weight = ((len(currentCandsSupporters[c]) - quota)/len(currentCandsSupporters[c])) * voter.weight
-                        currentCands.pop(c, None)
-                        currentCandsSupporters.pop(c, None)
-                else:
-                    """
-                        dont need to worry about popping after this, we will break from here
-                    """
-                    candidatesWithQuota = sorted(candidatesWithQuota, key=lambda x: maximalRank.index(x))
-                    for cands in candidatesWithQuota:
-                        if (len(electedCommittee) == k):
-                            break
-                        electedCommittee.append(cands)
-                        for voter in currentCandsSupporters[cands]:
-                            voter.weight = ((len(currentCandsSupporters[cands]) - quota)/len(currentCandsSupporters[cand])) * voter.weight
-                currJ += 1
-                # avoid out range checking. If quota wasnt reached then something went wrong in ballot process
-                # this shouldnt happen unless people entered in votes with no candidates elected
-                # this is saftey incase someone enters voters incorrectly to avoid breaking by out of index
-                if (currJ == self.num_cands):
-                    raise Exception("It seems some candidates may be missing in some voters ballots. Please check")
-        print(electedCommittee)
-        for voter in self.voters:
-            print(voter.weight)
+            for voter in self.voters:
+                for cand in voter.voteArray[currJ]:
+                    if cand in electedCommittee:
+                        break
+                    currentCandsSupporters[cand].append(voter)
+                    currentCands[cand] += voter.weight
+            candidatesWithQuota = self.checkCandidateQuota(quota=quota, cand_pont_dict=currentCands)
+            if (len(candidatesWithQuota) + len(electedCommittee) <= k):
+                for c in candidatesWithQuota:
+                    electedCommittee.append(c)
+                    for voter in currentCandsSupporters[c]:
+                        voter.weight = ((len(currentCandsSupporters[c]) - quota)/len(currentCandsSupporters[c])) * voter.weight
+                    currentCands.pop(c, None)
+                    currentCandsSupporters.pop(c, None)
+            else:
+                """
+                    dont need to worry about popping after this, we will break from here
+                """
+                candidatesWithQuota = sorted(candidatesWithQuota, key=lambda x: maximalRank.index(x))
+                for cands in candidatesWithQuota:
+                    if (len(electedCommittee) == k):
+                        break
+                    electedCommittee.append(cands)
+                    for voter in currentCandsSupporters[cands]:
+                        voter.weight = ((len(currentCandsSupporters[cands]) - quota)/len(currentCandsSupporters[cands])) * voter.weight
+            currJ += 1
+            # avoid out range checking. If quota wasnt reached then something went wrong in ballot process
+            # this shouldnt happen unless people entered in votes with no candidates elected
+            # this is saftey incase someone enters voters incorrectly to avoid breaking by out of index
+            if (currJ == self.num_cands):
+                raise Exception("It seems some candidates may be missing in some voters ballots. Please check")
+        return(electedCommittee)
 
 
     """
@@ -125,13 +124,13 @@ class EarVoter:
             raise ValueError("Weight should be a number > 0.")
 
 
-if __name__ == "__main__":
-    print("hello")
-    earV1 = EarVoter(voteArray=[["a"], ["b"], ["c"], ["d"]])
-    earV2 = EarVoter(voteArray=[["b"], ["c"], ["d"], ["a"]])
-    earV5 = EarVoter(voteArray=[["d"], ["b"], ["c"], ["a"]])
-    earV4 = EarVoter(voteArray=[["c"], ["d"], ["b"], ["a"]])
-    earV3 = EarVoter(voteArray=[["a"], ["b"], ["d"], ["c"]])
-    earProf = EarProfile(["a", "b", "c", "d"], 2)
-    earProf.add_voters([earV1, earV2, earV3, earV4, earV5])
-    earProf.earResult()
+# if __name__ == "__main__":
+#     print("hello")
+#     earV1 = EarVoter(voteArray=[["a"], ["b"], ["c"], ["d"]])
+#     earV2 = EarVoter(voteArray=[["b"], ["c"], ["d"], ["a"]])
+#     earV5 = EarVoter(voteArray=[["d"], ["b"], ["c"], ["a"]])
+#     earV4 = EarVoter(voteArray=[["c"], ["d"], ["b"], ["a"]])
+#     earV3 = EarVoter(voteArray=[["a"], ["b"], ["d"], ["c"]])
+#     earProf = EarProfile(["a", "b", "c", "d"], 2)
+#     earProf.add_voters([earV1, earV2, earV3, earV4, earV5])
+#     earProf.earResult()

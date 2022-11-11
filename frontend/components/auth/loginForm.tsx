@@ -76,7 +76,7 @@ const LoginForm = () => {
     }
   };
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="auth-form">
       <div className="inner-form">
         <div
           className={
@@ -93,6 +93,7 @@ const LoginForm = () => {
             }}
             value={userValues?.email}
           />
+          <div className="cut cut-short"></div>
           <label className="input__label">Email</label>
         </div>
         <div
@@ -112,6 +113,7 @@ const LoginForm = () => {
             }}
             value={password}
           />
+          <div className="cut"></div>
           <label className="input__label">Password</label>
           {/* {showPassword ? (
             <ViewIcon

@@ -31,10 +31,19 @@ const VOTING_METHODS = [
 
 const ABC_RULES = [
   { value: "EAR", label: "Expanding Approvals Rules" },
-  { value: "J", label: "j" },
+  { value: "cc", label: "Chamberlin-Courant (CC)" },
+  { value: "greedy-monroe", label: "Greedy Monroe"},
+  { value: "minimaxav", label: "Minimax Condorcet Method"},
+  { value: "equal-shares", label: "Method of Equal Shares (Rule-X)"},
+  { value: "reqseqpav", label: "Sequential Proportional Approval Voting"},
+  { value: "pav", label: "Proportional Approval Voting"}
 ];
 
-const STRICT_RULES = [{ value: "EAR", label: "Expanding Approvals Rule" }];
+const STRICT_RULES = [
+  { value: "EAR", label: "Expanding Approvals Rule" }, 
+  { value: "pbv", label: "Preferential Block Voting"},
+  { value: "stv", label: "Single Transferable Vote"},
+];
 
 const WEAK_RULES = [{ value: "EAR", label: "Expanding Approvals Rule" }];
 
@@ -173,11 +182,13 @@ const CreateBallot: NextPage = () => {
               handleChange(e);
             }}
             value={formState?.name}
+            placeholder="Ballot Name"
           />
+          <div className="cut-large cut"></div>
           <label className="input__label">Ballot Name</label>
         </div>
         <div className="candidate-list-input__container">
-          <div className="input-container">
+          <div className="input">
             <input
               className="input__field"
               name="candidate"
@@ -194,9 +205,10 @@ const CreateBallot: NextPage = () => {
               }}
               value={currCand}
             />
+            <div className="cut cut-large"></div>
             <label className="input__label">Candidates</label>
           </div>
-          <div className="list-added-candidates">
+          {candidates.length > 0 && <div className="list-added-candidates">
             {candidates?.map((cand) => (
               <div
                 className="added-cand__container"
@@ -207,7 +219,7 @@ const CreateBallot: NextPage = () => {
                 <div className="added-cand__remove">-</div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
         <div
           className={formState?.numWinners == null ? "input" : "input input--has-value"}
@@ -220,7 +232,9 @@ const CreateBallot: NextPage = () => {
               handleChange(e);
             }}
             value={formState?.numWinners}
+            placeholder="placeholder"
           />
+          <div className="cut cut-xxl"></div>
           <label className="input__label">Committee Size (min: 2)</label>
         </div>
         <div className="select-component">
@@ -235,9 +249,9 @@ const CreateBallot: NextPage = () => {
             <label className="select-label">Voting Rule</label>
             <Select
               options={
-                formState?.voteMethod === "strict"
+                formState?.voteMethod === "strictOrdering"
                   ? STRICT_RULES
-                  : formState?.voteMethod === "weak"
+                  : formState?.voteMethod === "weakOrdering"
                   ? WEAK_RULES
                   : ABC_RULES
               }
