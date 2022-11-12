@@ -105,6 +105,7 @@ def addVoters(AddInfo: models.AddVoters):
     creatorId = AddInfo.creatorId
     votersToAdd = AddInfo.voters
     ballotId = AddInfo.ballotId
+    print("hi")
     return addVoterToBallot(conn, creatorId, votersToAdd, ballotId)
 
 @app.post("/v1/ballots/votes/give", status_code=status.HTTP_200_OK)

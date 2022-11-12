@@ -5,7 +5,7 @@ import Ballot from "../../components/ballot/ballot";
 import BallotCard from "../../components/ballots/ballotCard";
 import { IBallots, userContext, UserContextType } from "../../context/userState";
 import { Modal } from "react-bootstrap";
-import { getRecord } from "../../services/axios";
+import { getRecord, postRecord, putRecord } from "../../services/axios";
 
 interface IBallotInfo {
   ballotId: string;
@@ -112,6 +112,7 @@ const Account: NextPage = () => {
 
   const addVotersModal = (ballotId: any) => {
     setSelectedBallotId(ballotId)
+    setError(null)
     setAddModal(true)
   }
 
@@ -124,8 +125,21 @@ const Account: NextPage = () => {
     setCurrVoter(e.target.value);
   };
 
-  const addVoters = (ballotId: string, userId: any) => {
-    console.log(ballotId)
+  const addVoters = async (ballotId: string, userId: any) => {
+    const uriPath = "/ballots/invite"
+    console.log(userValues.postgresId)
+    const postData = {
+      creatorId: userValues.postgresId,
+      voters: voters,
+      ballotId: ballotId
+    }
+    const res = await putRecord(uriPath, postData)
+    if (res.status === 403) {
+      setError("You can't add voters to this ballot")
+      return
+    }
+    setVoters([])
+    closeAddModal()
   }
 
   const closeBallot = (ballotId: string, userId: any) => {
@@ -279,6 +293,7 @@ const Account: NextPage = () => {
           </div>
         </Modal.Body>
         <Modal.Footer>
+          {error && <div className="error-container">{error}</div>}
           <input type="submit" value="Add Voters" onClick={(e) => {
               e.preventDefault()
               addVoters(selectedBallotId, userValues.postgresId)

@@ -9,7 +9,7 @@ from models import BallotCreate, BallotVote, BallotBaseInfo
 import json
 import bcrypt
 import os
-import psycopg2
+import psycopg2.extras
 from helpers import toJsonResponse
 from dotenv import load_dotenv
 
@@ -229,16 +229,20 @@ def addVoterToBallot(postgresdb, ballotOwnerId, toAddList, ballotId):
   try:
     cur.execute(sqlCheck, (ballotId,))
     (ballotOwner, isClosed) = cur.fetchone()
-    if (ballotOwner == ballotOwnerId and not isClosed):
+    print(ballotOwner, isClosed)
+    print(ballotOwnerId)
+    if (ballotOwner == int(ballotOwnerId) and not isClosed):
+      print("hello")
       data = []
       for userId in toAddList:
-        data.append((ballotId, userId))
-      sqlAddVoter = "INSERT INTO voteschema.vote (ballot_id, voter_id) VALUES %s"
-      
+        data.append((int(ballotId), userId))
+      sqlAddVoter = "INSERT INTO voteschema.vote (ballot_id, voter_id) VALUES %s ON CONFLICT DO NOTHING"
+      print(data)
       try: 
         psycopg2.extras.execute_values(
-          cur, sqlAddVoter, data, template=None, page_size=100 
+          cur, sqlAddVoter, data 
         )
+        postgresdb.commit()
         cur.close()
         return toJsonResponse(201, {})
       except Exception as error:
