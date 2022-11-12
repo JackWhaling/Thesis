@@ -52,13 +52,77 @@
     flex-wrap: wrap;
 
     .ballot__card {
-      background: $constant-blue;
+      background: $constant-green;
       margin: 8px;
       width: auto;
       padding: 14px;
       border-radius: 8px;
       cursor: pointer;
     }
+  }
+}
+
+.ballot {
+  &__owned-card {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: row;
+
+    .close-section {
+      margin: 0 8px;
+      padding: 4px 8px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      cursor: pointer;
+      border-radius: 4px;
+
+      &:hover {
+        background-color: $constant-red;
+      }
+    }
+
+    .add-voters {
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 4px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+
+      &:hover {
+        background-color: $constant-green;
+      }
+    }
+  }
+
+  &__open {
+    background: $constant-blue;
+  }
+
+  &__owned-card {
+    margin: 8px 0;
+    padding: 4px;
+    border-radius: 8px;
+
+    .ballot-card {
+      padding: 0 4px;
+    }
+  }
+}
+
+.ballot-card {
+  display: flex;
+  align-items: center;
+
+  .ballot-name {
+    border-right: 2px solid black;
+    margin-right: 4px;
+    padding-right: 4px;
   }
 }
 

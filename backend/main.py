@@ -12,7 +12,8 @@ import time
 from datetime import date, datetime
 import psycopg2
 import os
-from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, getBallotSecure, getUserEntry, castVote
+from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, \
+    getBallotSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot
 
 load_dotenv()
 
@@ -83,6 +84,10 @@ def getSecureDeatils(id, passcode: str = "", dfpasscode: str = ""):
 
 # add authentication
 
+@app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)
+def getBallotResults(ballotId, request: Request):
+    requestId = str(request.headers.get("userId"))
+    return getBallotResults(ballotId, requestId)
 
 @app.put("/v1/polls/close", status_code=status.HTTP_201_CREATED)
 def closePoll(BallotInfo: models.BallotBaseInfo):
@@ -95,6 +100,12 @@ def definePoll(RawData: models.BallotRaw):
 
 # add authentication
 
+@app.put("/v1/ballots/invite", status_code=status.HTTP_201_CREATED)
+def addVoters(AddInfo: models.AddVoters):
+    creatorId = AddInfo.creatorId
+    votersToAdd = AddInfo.voters
+    ballotId = AddInfo.ballotId
+    return addVoterToBallot(conn, creatorId, votersToAdd, ballotId)
 
 @app.post("/v1/ballots/votes/give", status_code=status.HTTP_200_OK)
 def ballotVote(BasicVote: models.BallotVote):

@@ -5,10 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import auth
 from firebase_admin import exceptions
-from models import BallotCreate, BallotVote
+from models import BallotCreate, BallotVote, BallotBaseInfo
 import json
 import bcrypt
 import os
+import psycopg2
 from helpers import toJsonResponse
 from dotenv import load_dotenv
 
@@ -124,6 +125,29 @@ def getBallotSecure(postgresdb, ballotId, givenPasscode):
     cur.close()
     return toJsonResponse(409, {})
 
+def closeBallot(postgresdb, ballotInfo: BallotBaseInfo):
+  sqlGetBallotInfoStr = "SELECT ballot_owner, closed FROM voteschema.ballot WHERE id = %s"
+  cur = postgresdb.cursor()
+  try:
+    cur.execute(
+      sqlGetBallotInfoStr, (ballotInfo.ballotId,)
+    )
+    (ballotOwner, isClosed) = cur.fetchone()
+    if (ballotOwner == ballotInfo.userToken and not isClosed):
+      sqlUpdateStr = "UPDATE voteschema.ballot SET closed = 1 WHERE id = %s"
+      cur.execute(
+        sqlUpdateStr, (ballotInfo.ballotId,)
+      )
+      cur.close()
+      return toJsonResponse(201, {})
+    else:
+      cur.close()
+      return toJsonResponse(401, {})
+  except Exception as error:
+    print(error)
+    cur.close()
+    return toJsonResponse(409, {})
+
 def castVote(postgresdb, voteUpdate: BallotVote):
   userId = voteUpdate.userToken
   ballotId = voteUpdate.ballotId
@@ -196,4 +220,34 @@ def updateVote(postgresdb, voteUpdate: BallotVote):
     return toJsonResponse(409, {})
 
 def addVoteSecure(postgresdb, voteUpdate: BallotVote):
+
   return toJsonResponse(200, {})
+
+def addVoterToBallot(postgresdb, ballotOwnerId, toAddList, ballotId):
+  sqlCheck = "SELECT ballot_owner, closed FROM voteschema.ballot WHERE id = %s"
+  cur = postgresdb.cursor()
+  try:
+    cur.execute(sqlCheck, (ballotId,))
+    (ballotOwner, isClosed) = cur.fetchone()
+    if (ballotOwner == ballotOwnerId and not isClosed):
+      data = []
+      for userId in toAddList:
+        data.append((ballotId, userId))
+      sqlAddVoter = "INSERT INTO voteschema.vote (ballot_id, voter_id) VALUES %s"
+      
+      try: 
+        psycopg2.extras.execute_values(
+          cur, sqlAddVoter, data, template=None, page_size=100 
+        )
+        cur.close()
+        return toJsonResponse(201, {})
+      except Exception as error:
+        print(error)
+        cur.close()
+        return toJsonResponse(403, {})
+    else:
+      return toJsonResponse(401, {})
+  except Exception as error:
+    print(error)
+    cur.close()
+    return toJsonResponse(409, {})

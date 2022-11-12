@@ -1,8 +1,8 @@
 import React from "react";
 import { useContext, useState } from "react";
-import { userContext, UserContextType, IUser } from "../../context/userState";
+import { userContext, UserContextType, IUser, IBallots } from "../../context/userState";
 import Select, { components } from 'react-select';
-import { postRecord } from "../../services/axios";
+import { getRecord, postRecord } from "../../services/axios";
 import app, { auth } from "../../services/firebase";
 import { useRouter } from "next/router";
 
@@ -26,8 +26,7 @@ const SignupForm = () => {
 
     if (
       userValues.email == "" ||
-      password == "" ||
-      userValues.username == ""
+      password == ""
     ) {
       setError("missingFields");
       return false;
@@ -57,8 +56,17 @@ const SignupForm = () => {
           };
           const uriValue = "users/create";
           const res = await postRecord(uriValue, postData);
-          console.log(res)
-          router.push("/")
+
+          let ownedBallots: IBallots[] = []
+          let userBallots: IBallots[] = []
+          console.log("hello", res)
+          setUserValues((prevState: IUser | any) => ({
+            ...prevState,
+            postgresId: res.data.userId,
+            ballots: userBallots,
+            ownedBallots: ownedBallots,
+          }));
+          router.push("/");
         }).catch((err) => {
           setError("somethingWrong")
         })
@@ -83,8 +91,9 @@ const SignupForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="auth-form">
       <div className="inner-form">
+        <h2>Create Account</h2>
         <div
           className={
             userValues.email == "" ? "input" : "input input--has-value"
@@ -100,7 +109,7 @@ const SignupForm = () => {
             }}
             value={userValues.email}
           />
-          <div className="cut"></div>
+          <div className="cut cut-short"></div>
           <label className="input__label">Email</label>
         </div>
         <div
@@ -136,30 +145,12 @@ const SignupForm = () => {
             />
           )} */}
         </div>
-        <div
-          className={
-            userValues.username == "" ? "input" : "input input--has-value"
-          }
-        >
-          <input
-            className="input__field"
-            name="username"
-            type="text"
-            placeholder="username"
-            onChange={(e) => {
-              handleChange(e);
-            }}
-            value={userValues.username}
-          />
-          <div className="cut"></div>
-          <label className="input__label">Username</label>
-        </div>
         {error == "missingFields" && (
           <p className="error">{`You're missing some fields`}</p>
         )}
         {error == "invalidAge" && <p className="error">Invalid age input</p>}
         {error == "somethingWrong" && (
-          <p className="error">Something went wrong, please contact us!</p>
+          <p className="error">Something went wrong!</p>
         )}
         {error == "userExists" && (
           <p className="error">Email is already being used, use another!</p>

@@ -44,3 +44,8 @@ class BallotRaw(BaseModel):
     voteRule: str
     numWinners: str
     rawData: str
+
+class AddVoters(BaseModel):
+    creatorId: str
+    voters: List[str]
+    ballotId: str

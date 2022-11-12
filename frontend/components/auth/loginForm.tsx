@@ -78,6 +78,7 @@ const LoginForm = () => {
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="inner-form">
+        <h2>Login</h2>
         <div
           className={
             userValues?.email == "" ? "input" : "input input--has-value"

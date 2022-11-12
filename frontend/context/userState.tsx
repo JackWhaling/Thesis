@@ -3,7 +3,6 @@ import React, { createContext, useState } from "react";
 export interface IUser {
   id: string;
   email: string;
-  username: string;
   ballots: IBallots[];
   ownedBallots: IBallots[];
   postgresId: bigint | null;
@@ -18,7 +17,6 @@ export interface IBallots {
 export const INITIAL_USER_STATE = {
   ballots: [],
   ownedBallots: [],
-  username: "",
   email: "",
   id: "",
   postgresId: null

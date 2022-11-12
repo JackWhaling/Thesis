@@ -10,7 +10,7 @@ const BallotCard = ({ name, id }: IBallotCard) => {
 
   return (
     <div className="ballot-card">
-      <strong>{name}</strong> | Ballot Id: {id}
+      <strong className="ballot-name">{name}</strong> Ballot Id: {id}
     </div>
   );
 };
