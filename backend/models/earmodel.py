@@ -48,6 +48,7 @@ class EarProfile:
         k = self.committee_size
         quota: int = (numVoters/(k+1)) + ((1/(numCands+1))*(floor(numVoters/(k + 1)) + 1 - (numVoters/(k + 1))))
         electedCommittee = []
+        print(quota)
         currentCands = defaultdict(float)
         currentCandsSupporters = defaultdict(list)
         for candidate in self.candidates:
@@ -86,7 +87,8 @@ class EarProfile:
             # this shouldnt happen unless people entered in votes with no candidates elected
             # this is saftey incase someone enters voters incorrectly to avoid breaking by out of index
             if (currJ == self.num_cands):
-                raise Exception("It seems some candidates may be missing in some voters ballots. Please check")
+                print(electedCommittee)
+                raise Exception("Either candidates missing in ballots or too little voters")
         return(electedCommittee)
 
 

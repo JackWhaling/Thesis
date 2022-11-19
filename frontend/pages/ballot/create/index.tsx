@@ -2,8 +2,9 @@ import { NextPage } from "next";
 import { useRouter } from "next/router";
 import React, { createRef, useContext, useEffect, useRef, useState } from "react";
 import Select from "react-select";
-import { IBallots, userContext, UserContextType } from "../../../context/userState";
+import { IBallots, IUser, userContext, UserContextType } from "../../../context/userState";
 import { postRecord } from "../../../services/axios";
+import { auth } from "../../../services/firebase";
 
 interface IBallotForm {
   name: string;
@@ -66,7 +67,10 @@ const CreateBallot: NextPage = () => {
     }));
   };
 
-  const submitForm = () => {
+  console.log(userValues)
+
+  const submitForm = async () => {
+    setError(null)
     if (validationCheck()) {
       try {
         const postData = {
@@ -80,14 +84,23 @@ const CreateBallot: NextPage = () => {
           candidates: candidates,
         }
         const uriValue = "polls/create"
-        const res = postRecord(uriValue, postData)
-        res.then((data) => {
-          console.log(data)
-          if (data.status === 201) {
-            let newBallot: IBallots = {id: data.data.ballotId, name: formState.name, open: true}
-            successBallotPass({pass: data.data.passcode, id: data.data.ballotId})
+        const config = {
+          headers: {
+            Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
           }
-        })
+        }
+        const res = await postRecord(uriValue, postData, config)
+          if (res.status === 201) {
+            let newBallot: IBallots = {id: res.data.ballotId, name: formState.name, open: true, live: postData.liveResult}
+            setUserValues((prevState: IUser | any) => ({
+              ...prevState,
+              ownedBallots: [...prevState.ownedBallots, newBallot]
+            }))
+            successBallotPass({pass: res.data.passcode, id: res.data.ballotId})
+          }
+          else {
+            setError("Something went wrong! Please check you're not missing any fields")
+          }
       } catch(err) {
         setError("Something happened on our end, please try again!")
       }
@@ -111,6 +124,20 @@ const CreateBallot: NextPage = () => {
     ]);
     setCurrCand("");
   };
+
+  const handleLiveChange = (e: any) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      liveResults: e.target.checked
+    }))
+  } 
+
+  const handleDoubleChange = (e: any) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      doubleAuth: e.target.checked
+    }))
+  }
 
   const handleCandChange = (e: any) => {
     setCurrCand(e.target.value);
@@ -261,12 +288,12 @@ const CreateBallot: NextPage = () => {
           </div>
         )}
         <div className="input-checkbox">
-          <input type="checkbox" />
+          <input type="checkbox" onChange={handleLiveChange}/>
           <label>Show Live Results</label>
           <div className="info-hover">?</div>
         </div>
         <div className="input-checkbox">
-          <input type="checkbox" />
+          <input type="checkbox" onChange={handleDoubleChange}/>
           <label>Double Factor</label>
           <div className="info-hover">?</div>
         </div>

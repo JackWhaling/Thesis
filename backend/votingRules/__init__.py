@@ -1,1 +1,1 @@
-from .abcRules import convertToAbcProfile, convertToEarProfile, getAbcResult
+from .abcRules import convertToAbcProfile, convertToEarProfile, getAbcResult, convertToStrict

@@ -54,14 +54,14 @@ def createBallot(pgdb, postgresdb, ballotInfo: BallotCreate):
 
 def getBallotInfo(postgresdb, ballotId, passcode, skipCheck: bool = False):
   sqlStr = "SELECT double_factor, ballot_name, voting_method, live_results, ballot_owner, candidates, closed, \
-      committee_size, elected_committee, passcode FROM voteschema.ballot WHERE id = %s"
+      committee_size, elected_committee, passcode, voting_rule FROM voteschema.ballot WHERE id = %s"
   cur = postgresdb.cursor()
   print("hello")
   try:
     cur.execute(
       sqlStr, (ballotId,)
     )
-    (doubleFactor, ballotName, votingMethod, liveRes, ownerId, candidates, close, size, elected, ballotPass) = cur.fetchone()
+    (doubleFactor, ballotName, votingMethod, liveRes, ownerId, candidates, close, size, elected, ballotPass, votingRule) = cur.fetchone()
     cur.close()
     print("nononono")
     mySalt = os.getenv('SOME_SALT').encode('utf-8')
@@ -83,7 +83,8 @@ def getBallotInfo(postgresdb, ballotId, passcode, skipCheck: bool = False):
         "owner": ownerId,
         "closed": close,
         "committeeSize": size,
-        "elected": elected
+        "elected": elected,
+        "rule": votingRule,
       }
       return toJsonResponse(200, responseBody)
   except Exception as error:
@@ -165,15 +166,18 @@ def castVote(postgresdb, voteUpdate: BallotVote):
     if (closed):
       cur.close()
       return toJsonResponse(403, {})
-    sqlVoteCheck = "SELECT vote_string, passcode FROM voteschema.vote WHERE voter_id = %s AND ballot_id = %s"
+    sqlVoteCheck = "SELECT vote_object_string, passcode FROM voteschema.voteTable WHERE voter_id = %s AND ballot_id = %s"
     cur.execute(sqlVoteCheck, (userId, ballotId))
     record = cur.fetchone()
+    print(record)
+    if (record == None):
+      return toJsonResponse(403, {})
     (voteString, passcode) = record
     if (voteString != None):
-      return toJsonResponse(403, {})
+      return toJsonResponse(405, {})
     if (passcode != None):
       return toJsonResponse(403, {})
-    sqlAddVote = "UPDATE voteschema.vote SET vote_string = %s WHERE voter_id = %s AND ballot_id = %s RETURNING voter_id"
+    sqlAddVote = "UPDATE voteschema.voteTable SET vote_object_string = %s WHERE voter_id = %s AND ballot_id = %s RETURNING voter_id"
     newVoteString = json.dumps(ballot)
     cur.execute(sqlAddVote, (newVoteString, userId, ballotId))
     postgresdb.commit()
@@ -200,7 +204,7 @@ def updateVote(postgresdb, voteUpdate: BallotVote):
     if (closed):
       cur.close()
       return toJsonResponse(403, {})
-    sqlVoteCheck = "SELECT vote_string, passcode FROM voteschema.vote WHERE voter_id = %s AND ballot_id = %s"
+    sqlVoteCheck = "SELECT vote_string, passcode FROM voteschema.voteTable WHERE voter_id = %s AND ballot_id = %s"
     cur.execute(sqlVoteCheck, (userId, ballotId))
     record = cur.fetchone()
     (voteString, passcode) = record
@@ -208,7 +212,7 @@ def updateVote(postgresdb, voteUpdate: BallotVote):
       return toJsonResponse(403, {})
     if (passcode != None):
       return toJsonResponse(403, {})
-    sqlAddVote = "UPDATE voteschema.vote SET vote_string = %s WHERE voter_id = %s AND ballot_id = %s RETURNING voter_id"
+    sqlAddVote = "UPDATE voteschema.voteTable SET vote_string = %s WHERE voter_id = %s AND ballot_id = %s RETURNING voter_id"
     newVoteString = json.dumps(ballot)
     cur.execute(sqlAddVote, (newVoteString, userId, ballotId))
     postgresdb.commit()
@@ -229,15 +233,12 @@ def addVoterToBallot(postgresdb, ballotOwnerId, toAddList, ballotId):
   try:
     cur.execute(sqlCheck, (ballotId,))
     (ballotOwner, isClosed) = cur.fetchone()
-    print(ballotOwner, isClosed)
-    print(ballotOwnerId)
     if (ballotOwner == int(ballotOwnerId) and not isClosed):
-      print("hello")
       data = []
       for userId in toAddList:
         data.append((int(ballotId), userId))
-      sqlAddVoter = "INSERT INTO voteschema.vote (ballot_id, voter_id) VALUES %s ON CONFLICT DO NOTHING"
       print(data)
+      sqlAddVoter = "INSERT INTO voteschema.voteTable (ballot_id, voter_id) VALUES %s ON CONFLICT DO NOTHING"
       try: 
         psycopg2.extras.execute_values(
           cur, sqlAddVoter, data 
@@ -246,12 +247,28 @@ def addVoterToBallot(postgresdb, ballotOwnerId, toAddList, ballotId):
         cur.close()
         return toJsonResponse(201, {})
       except Exception as error:
-        print(error)
+        cur.execute("ROLLBACK")
+        postgresdb.commit()
         cur.close()
+        print(error)
         return toJsonResponse(403, {})
     else:
+      cur.close()
       return toJsonResponse(401, {})
   except Exception as error:
     print(error)
     cur.close()
     return toJsonResponse(409, {})
+
+def closeBallot(postgresdb, ballotId, userId):
+    sqlStringQuery = "UPDATE voteschema.ballot SET closed = %s WHERE (id = %s AND ballot_owner = %s)"
+    cur = postgresdb.cursor()
+    try:
+      cur.execute(sqlStringQuery, (True, ballotId, userId))
+      postgresdb.commit()
+      cur.close()
+      return toJsonResponse(201, {})
+    except Exception as error:
+      print(error)
+      cur.close()
+      return toJsonResponse(409, {})

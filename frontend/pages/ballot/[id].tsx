@@ -2,9 +2,13 @@ import { useRouter } from "next/router"
 import { useEffect, useState, useContext } from "react"
 import { userContext, UserContextType } from "../../context/userState"
 import { postRecord } from "../../services/axios"
+import { auth } from "../../services/firebase"
+import { randomStyleCandA, randomListStyleA, randomStyleNameA } from "./randomStyles"
 
 const Ballot = (props: any) => {
-
+  const styleRandomList = randomListStyleA[Math.floor(Math.random() * 2)]
+  const styleRandomCand = randomStyleCandA[Math.floor(Math.random() * 4)]
+  const styleRandomName = randomStyleNameA[Math.floor(Math.random() * 2)]
   const router = useRouter()
   const [loading, setLoading] = useState<boolean>(true)
   const [candidates, setCandidates] = useState<string[]>([])
@@ -22,8 +26,8 @@ const Ballot = (props: any) => {
       setLoading(false)
     }
   }, [])
+
   useEffect(() => {
-    console.log(router.query)
     //@ts-ignore
     setCandidates(router.query.candidates)
     setIsApproval(router.query.votingMethod === "approval")
@@ -40,7 +44,7 @@ const Ballot = (props: any) => {
     return false
   }
 
-  const handleVote = (e:any) => {
+  const handleVote = async (e:any) => {
     e.preventDefault()
     const target = e.target
     let voteDict: any = {}
@@ -56,11 +60,16 @@ const Ballot = (props: any) => {
         else { voteDict[name as keyof typeof voteDict] = 1}
       }
       const postData = {
-        userToken: userValues.id,
+        userToken: userValues.email,
         ballotId: router.query.ballotId,
         ballot: voteDict,
       }
-      const res = postRecord(uriPath, postData)
+      const config = {
+        headers: {
+          Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+        }
+      }
+      const res = postRecord(uriPath, postData, config)
       res.then((data) => {
         console.log(data)
         if (data.status === 409) {
@@ -83,34 +92,45 @@ const Ballot = (props: any) => {
     if (router.query.votingMethod === "strictOrdering") {
       if (!isStrictCheck(valueSet)) {
         setVoteError("This is a strict order ballot, no two candidates can have the same preferences.")
+        return
       }
     }
     const postData = {
-      userToken: userValues.id,
+      userToken: userValues.email,
       ballotId: router.query.ballotId,
       ballot: voteDict,
     }
-    const res = postRecord(uriPath, postData)
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+    const res = postRecord(uriPath, postData, config)
     res.then((data) => {
-      console.log(data)
-      if (data.status === 409) {
+      if (data.status === 403) {
         setVoteError("You don't have permission to vote in this ballot")
+      }
+      if (data.status === 405) {
+        setVoteError("You've already cast a vote in this ballot.")
+      } else {
+        setVoteError("Ballot Submitted Successfully!")
       }
     })
   }
-
   return (
     <div className="page-container vote__container">
       {loading ? <></> 
       :
       <>
         <h1 className="vote__title">{router.query.name}</h1>
-        <form onSubmit={handleVote}>
-        <div className="vote__cand-list">
+        <form onSubmit={handleVote} className='form__vote'>
+        <div className="vote__cand-list" style={styleRandomList}>
         {candidates.map((x) => {
+          console.log(styleRandomName)
+
           return (
-            <div className="vote__cand-card" key={x}>
-              <h3 className="vote__cand-name">{x}</h3> {router.query.votingMethod == "approval" ? <input type="checkbox" name={x}/> : <input type="number" name={x} max={candidates.length} min="1"/>}
+            <div className="vote__cand-card" key={x} style={styleRandomCand}>
+              <h3 className="vote__cand-name" style={styleRandomName}>{x}</h3> {router.query.votingMethod == "approval" ? <input type="checkbox" name={x}/> : <input type="number" name={x} max={candidates.length} min="1"/>}
             </div>
           )
         })}

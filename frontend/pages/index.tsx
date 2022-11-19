@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { UrlObject } from "url";
 import { userContext, UserContextType } from "../context/userState";
 import { Modal } from "react-bootstrap";
@@ -75,6 +75,10 @@ const Home: NextPage = () => {
     router.push({pathname: `/ballot/${voteState.ballotId}`, query: passQuery}, `/ballot/${voteState.ballotId}`)
   }
 
+  useEffect(() => {
+    console.log(userValues)
+  }, [userValues.id])
+
   return (
     <div className="container">
       <div className="home-page">
@@ -106,7 +110,7 @@ const Home: NextPage = () => {
               Create Ballot
             </button>
             <button className="main-button button" onClick={showVoteModal}>Vote</button>
-            <button className="sub-button button">My Ballots</button>
+            <button className="sub-button button" value="/account" onClick={(e) => clickPush(e)}>My Ballots</button>
             <button className="sub-button button" value="/ballot/raw" onClick={(e) => clickPush(e)}>Enter Raw Ballot</button>
           </>
         )}

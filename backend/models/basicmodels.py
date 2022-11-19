@@ -29,6 +29,10 @@ class BallotBaseInfo(BaseModel):
     userToken: str
     ballotId: str
 
+class BallotExtraInfo(BaseModel):
+    userToken: str
+    userEmail: str
+    ballotId: str
 
 class CreateVoter(BaseModel):
     userId: str

@@ -33,30 +33,30 @@ def createUserEntry(fbdb, postgresdb, userInfo: CreateVoter):
 def getUserEntry(fbdb, postgresdb, id):
   cur = postgresdb.cursor()
   userBallots = []
-  ballotSqlStr =  "SELECT ballot_name, ballot_id, closed FROM voteschema.vote JOIN voteschema.ballot ON \
-(voteschema.vote.ballot_id = voteschema.ballot.id) WHERE voteschema.vote.voter_id = %s"
+  ballotSqlStr =  "SELECT ballot_name, ballot_id, closed, live_results FROM voteschema.voteTable JOIN voteschema.ballot ON \
+(voteschema.voteTable.ballot_id = voteschema.ballot.id) WHERE voteschema.voteTable.voter_id = %s"
   ownedBallots = []
-  userPostgresId = "SELECT id FROM voteschema.voter WHERE fb_key = %s"
-  try: 
-    cur.execute(ballotSqlStr, (id, ))
+  userPostgresId = "SELECT id, email FROM voteschema.voter WHERE fb_key = %s"
+  ownedBallotsSqlStr = "SELECT ballot_name, id, closed, live_results FROM voteschema.ballot WHERE ballot_owner = %s"
+  try:
+    cur.execute(userPostgresId, (id, ))
+    record = cur.fetchone()
+    (userId, email) = record
+    cur.execute(ownedBallotsSqlStr, (userId,))
     record = cur.fetchall()
     for row in record:
-      (ballotName, ballotId, closed) = row
-      userBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed})
+      (ballotName, ballotId, closed, live) = row
+      ownedBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed, "live": live})
   except Exception as error:
     print(error)
     cur.close()
     return toJsonResponse(409, {})
-  ownedBallotsSqlStr = "SELECT ballot_name, id, closed FROM voteschema.ballot WHERE ballot_owner = %s"
-  try: 
-    cur.execute(userPostgresId, (id, ))
-    record = cur.fetchone()[0]
-    (userId) = record
-    cur.execute(ownedBallotsSqlStr, (userId,))
+  try:
+    cur.execute(ballotSqlStr, (email, ))
     record = cur.fetchall()
     for row in record:
-      (ballotName, ballotId, closed) = row
-      ownedBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed})
+      (ballotName, ballotId, closed, live) = row
+      userBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed, "live": live})
   except Exception as error:
     print(error)
     cur.close()

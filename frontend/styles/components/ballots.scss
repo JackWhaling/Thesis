@@ -13,13 +13,12 @@
     }
   }
   &__cand-list {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-
   }
+
   &__cand-name {
-    margin-right: 8px;
+    width: 100%;
+    margin: 0
   }
 
   &__title {
@@ -42,7 +41,13 @@
     width: 200px;
     margin: 8px;
     align-self: center;
+    justify-self: center;
   }
+}
+
+.form__vote {
+  display: flex;
+  flex-direction: column;
 }
 
 .ballot-lists {
@@ -53,6 +58,21 @@
 
     .ballot__card {
       background: $constant-green;
+      margin: 8px;
+      width: auto;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  }
+
+  &__closed {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .ballot__card {
+      background: $constant-red;
       margin: 8px;
       width: auto;
       padding: 14px;
@@ -87,7 +107,8 @@
       }
     }
 
-    .add-voters {
+    .add-voters,
+    .get-results {
       padding: 4px 8px;
       cursor: pointer;
       border-radius: 4px;
@@ -102,6 +123,10 @@
 
   &__open {
     background: $constant-blue;
+  }
+
+  &__closed {
+    background: $constant-yellow;
   }
 
   &__owned-card {
@@ -175,5 +200,13 @@
       background: $constant-purple;
       color: $constant-white;
     }
+  }
+}
+
+@media screen and (max-width: 450px) {
+
+  .vote__container {
+    padding: none;
+    margin: 0 !important;
   }
 }

@@ -226,5 +226,5 @@ export default RawBallot;
 1: c1,c2,c3,e1,e2,e3,e4,d1
 1: c2,c3,c1,e1,e2,e3,e4,d1
 1: c3,c1,d1,c2,e1,e2,e3,e4
-6: e1,e2,e4,e4,c1,c2,c3,d1
+6: e1,e2,e3,e4,c1,c2,c3,d1
 */

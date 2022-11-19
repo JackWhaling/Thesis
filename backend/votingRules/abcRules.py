@@ -7,6 +7,7 @@ from models import EarProfile, EarVoter
 import itertools
 import math
 from operator import itemgetter
+from pyrankvote import Candidate, Ballot
 
 from numpy import sort
 
@@ -34,7 +35,9 @@ def convertToAbcProfile(ballots: List[Dict[str, int]], numCandidates: int):
   candidateNameList = []
   for candidate in ballots[0]:
     candidateNameList.append(candidate)
-  profile = Profile(numCandidates, candidateNameList)
+  print(candidateNameList)
+  profile = Profile(len(candidateNameList), candidateNameList)
+  print(profile.cand_names)
   for ballot in ballots:
     approvedCandidates = []
     for candidate in ballot:
@@ -55,8 +58,21 @@ def convertToEarProfile(ballots: List[Dict[str, int]], numCandidates: int):
       newBase[ballot[candidate]].append(candidate)
     voter = EarVoter(voteArray=newBase)
     profile.add_voter(voter)
-  print(profile)
   return profile
+
+def convertToStrict(ballots: List[Dict[str, int]]):
+  candidateList = []
+  ballotList = []
+  for candidate in ballots[0]:
+    candidateList.append(Candidate(candidate))
+  for ballot in ballots:
+    sortedBallot = sorted(ballot, key=ballot.get)
+    votes = []
+    for cand in sortedBallot:
+      vote = Candidate(cand)
+      votes.append(vote)
+    ballotList.append(Ballot(ranked_candidates=votes))
+  return candidateList, ballotList
 
 
 def getAbcResult(rule: str, ballots: List[Dict[str, int]], numWinners: int):

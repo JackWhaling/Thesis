@@ -6,6 +6,7 @@ import BallotCard from "../../components/ballots/ballotCard";
 import { IBallots, userContext, UserContextType } from "../../context/userState";
 import { Modal } from "react-bootstrap";
 import { getRecord, postRecord, putRecord } from "../../services/axios";
+import { auth } from "../../services/firebase";
 
 interface IBallotInfo {
   ballotId: string;
@@ -135,6 +136,10 @@ const Account: NextPage = () => {
     }
     const res = await putRecord(uriPath, postData)
     if (res.status === 403) {
+      setError("Someone you tried to add doesn't exist in our system")
+      return
+    }
+    if (res.status !== 201) {
       setError("You can't add voters to this ballot")
       return
     }
@@ -142,11 +147,57 @@ const Account: NextPage = () => {
     closeAddModal()
   }
 
-  const closeBallot = (ballotId: string, userId: any) => {
+  const closeBallot = async (ballotId: string, userId: any) => {
+    const putUrl = 'polls/close'
+    const body = {
+      userToken: userValues.postgresId,
+      ballotId: ballotId,
+    }
+
+    const res = await putRecord(putUrl, body)
+    if (res.status == 201) {
+      const index = userValues.ownedBallots.findIndex(ballot =>{
+        return ballot.id === ballotId  
+      })
+      setUserValues((prevState) => ({
+        ...prevState,
+        ownedBallots: [
+          ...prevState.ownedBallots.slice(0,index),
+          {
+            ...prevState.ownedBallots[index],
+            open: false,
+          },
+          ...prevState.ownedBallots.slice(index + 1),
+        ]
+      }))
+    } else {
+      alert('Failed to close')
+    }
   }
 
-  const getResults = (ballotId: string, userId: any) => {
+  const getResults = async (ballotId: string, userId: any) => {
+    const getUrl = `results/ballot/${ballotId}`
+    const config = {
+      headers: {
+        ContentType: "application/json",
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
 
+    const res = await getRecord(getUrl, config)
+
+    if (res.status == 200) {
+      const passQuery = {
+        results: res.data.results,
+        ballotId: ballotId,
+      }
+      router.push({pathname: `/results`, query: passQuery}, `/results`)
+      return
+    } if (res.status == 406) {
+      alert('not enough voters found to analyse results')
+    } else {
+      alert('Unable to get results at this time')
+    }
   }
 
   return (
@@ -190,8 +241,15 @@ const Account: NextPage = () => {
         {userValues.ownedBallots.map((ballot) => (
           <div className={`ballot__owned-card ${ballot.open ? "ballot__open":"ballot__closed"}`} key={ballot.id}>
             <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
-            {ballot.open ? 
             <div className="ballot__options">
+            {ballot.open ? 
+            <>
+              {ballot.live && <div className="get-results" onClick={(e) => {
+                e.preventDefault()
+                getResults(ballot.id, userValues.postgresId)
+              }}>
+                Get Results
+              </div>}
               <div className="close-section" onClick={(e) => {
                 e.preventDefault()
                 closeBallot(ballot.id, userValues.postgresId)}}
@@ -204,7 +262,8 @@ const Account: NextPage = () => {
               }}>
                 Add Voters +
               </div>
-            </div> 
+              
+            </>
             : 
             <div className="get-results" onClick={(e) => {
               e.preventDefault()
@@ -213,6 +272,7 @@ const Account: NextPage = () => {
               Get Results
             </div>
             }
+            </div> 
           </div>
         ))}
 
@@ -298,6 +358,7 @@ const Account: NextPage = () => {
               e.preventDefault()
               addVoters(selectedBallotId, userValues.postgresId)
             }}
+            disabled={voters.length === 0}
           />
         </Modal.Footer>
       </Modal>

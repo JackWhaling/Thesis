@@ -1,0 +1,42 @@
+@import '../common/variables';
+
+.election-results {
+  &__container {
+    background: $constant-white;
+    margin: 2rem;
+    display: flex;
+    flex-direction: row;
+
+    h5 {
+      text-decoration: underline;
+      color: $constant-purple;
+      font-weight: 800;
+    }
+
+    .results-committee {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+
+      .elected-committee {
+        background: $constant-background;
+        color: $constant-purple;
+        margin: 8px 8px 0 0;
+        padding: 8px;
+        border-radius: 8px;
+      }
+    }
+  }
+
+
+  &__right-side {
+    width: 50%;
+    background: $constant-background;
+    border-radius: 12px;
+    box-shadow: 0px 0px 12px -8px grey;
+  }
+
+  &__left-side {
+    width: 50%;
+  }
+}

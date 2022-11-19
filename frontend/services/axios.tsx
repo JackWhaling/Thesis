@@ -49,7 +49,7 @@ const exceptionHandler = (e: any) => {
   return responseContent;
 };
 
-export const putRecord = async (relativeUri: string, data: any) => {
+export const putRecord = async (relativeUri: string, data: any, config: any = {}) => {
   let responseContent: any = {
     status: "",
     message: "",
@@ -57,7 +57,7 @@ export const putRecord = async (relativeUri: string, data: any) => {
   };
 
   try {
-    let response = await API.put(relativeUri, data)
+    let response = await API.put(relativeUri, data, config)
       .then((reponse) => {
         responseContent = {
           status: reponse.status,
@@ -74,7 +74,7 @@ export const putRecord = async (relativeUri: string, data: any) => {
   }
 };
 
-export const postRecord = async (relativeUri: string, data: any) => {
+export const postRecord = async (relativeUri: string, data: any, config: any = {}) => {
   let responseContent: any = {
     status: "",
     message: "",
@@ -82,7 +82,7 @@ export const postRecord = async (relativeUri: string, data: any) => {
   };
   console.log(relativeUri)
   try {
-    let response = await API.post(relativeUri, data)
+    let response = await API.post(relativeUri, data, config)
       .then((response) => {
         responseContent = {
           status: response.status,
@@ -99,7 +99,7 @@ export const postRecord = async (relativeUri: string, data: any) => {
   }
 };
 
-export const getRecord = async (relativeUri: string, config: any) => {
+export const getRecord = async (relativeUri: string, config: any = {}) => {
   let responseContent: any = {
     status: "",
     message: "",
@@ -123,15 +123,15 @@ export const getRecord = async (relativeUri: string, config: any) => {
   }
 };
 
-export const deleteRecord = async (relativeUri: string, data: any) => {
+export const deleteRecord = async (relativeUri: string, config = {}) => {
   let responseContent: any = {
-    status: "",
-    message: "",
-    data: "",
+    status: '',
+    message: '',
+    data: '',
   };
 
   try {
-    let response = await API.delete(relativeUri, data)
+    const response = await API.delete(relativeUri, config)
       .then((reponse) => {
         responseContent = {
           status: reponse.status,
