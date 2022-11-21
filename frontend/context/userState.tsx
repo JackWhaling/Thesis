@@ -52,39 +52,39 @@ export const UserProvider = ({ children }: UserContextProviderProps) => {
           id: loggedUser,
           token: token,
         }))
+        const uriPath = `users/${loggedUser}`;
+        const userDetails = await getRecord(uriPath);
+        const userData = userDetails.data;
+        let ownedBallots: IBallots[] = []
+        let userBallots: IBallots[] = []
+        userData?.userBallots?.forEach((ballot: any) => {
+          var newBallot: IBallots = {id: "", name: "", open: false, live: false}
+          newBallot.name = ballot.ballotName
+          newBallot.id = ballot.ballotId
+          newBallot.open = !ballot.closed
+          newBallot.live = ballot.live
+          userBallots.push(newBallot)
+        })
+
+        userData?.ownedBallots?.forEach((ballot: any) => {
+          var newBallot: IBallots = {id: "", name: "", open: false, live: false}
+          newBallot.name = ballot.ballotName
+          newBallot.id = ballot.ballotId
+          newBallot.open = !ballot.closed
+          newBallot.live = ballot.live
+          ownedBallots.push(newBallot)
+        })
+        setUserValues((prevState: IUser | any) => ({
+          ...prevState,
+          id: loggedUser,
+          postgresId: userData?.postId,
+          ballots: userBallots,
+          token: token,
+          ownedBallots: ownedBallots,
+        }));
       } else {
         setUserValues(INITIAL_USER_STATE)
       }
-      const uriPath = `users/${loggedUser}`;
-      const userDetails = await getRecord(uriPath);
-      const userData = userDetails.data;
-      let ownedBallots: IBallots[] = []
-      let userBallots: IBallots[] = []
-      userData.userBallots.forEach((ballot: any) => {
-        var newBallot: IBallots = {id: "", name: "", open: false, live: false}
-        newBallot.name = ballot.ballotName
-        newBallot.id = ballot.ballotId
-        newBallot.open = !ballot.closed
-        newBallot.live = ballot.live
-        userBallots.push(newBallot)
-      })
-
-      userData.ownedBallots.forEach((ballot: any) => {
-        var newBallot: IBallots = {id: "", name: "", open: false, live: false}
-        newBallot.name = ballot.ballotName
-        newBallot.id = ballot.ballotId
-        newBallot.open = !ballot.closed
-        newBallot.live = ballot.live
-        ownedBallots.push(newBallot)
-      })
-      setUserValues((prevState: IUser | any) => ({
-        ...prevState,
-        id: loggedUser,
-        postgresId: userData.postId,
-        ballots: userBallots,
-        token: token,
-        ownedBallots: ownedBallots,
-      }));
     })
   }, [])
 

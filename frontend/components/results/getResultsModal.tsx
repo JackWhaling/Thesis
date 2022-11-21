@@ -43,7 +43,7 @@ const GetResultsModal = ({show, hideModal, getBallotInfo, error}: IGetResultsMod
           {error && <label>Incorrect passcode</label>}
         </Modal.Body>
         <Modal.Footer>
-          <input type="submit" value="Vote!" onClick={(e) => {getBallotInfo(e, passcode)}}/>
+          <input type="submit" value="Get Info" onClick={(e) => {getBallotInfo(e, passcode)}}/>
         </Modal.Footer>
       </Modal>
   )

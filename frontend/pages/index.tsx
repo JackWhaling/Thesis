@@ -54,7 +54,7 @@ const Home: NextPage = () => {
     const uriPath = `polls/details/${voteState.ballotId}`
     const res = await getRecord(uriPath, config);
     console.log(res)
-    if (res.status == 403) {
+    if (res.status != 200) {
       setIncorrect(true)
       return
     }

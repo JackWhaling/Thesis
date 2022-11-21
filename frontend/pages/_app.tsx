@@ -10,14 +10,31 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import type { AppProps } from 'next/app'
 import Layout from '../components/shared/layout'
 import { UserProvider } from '../context/userState'
+import Script from 'next/script'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <UserProvider>
-      <Layout>
-          <Component {...pageProps} />
-      </Layout>
-    </UserProvider>
+    <>
+      {/* Global Site Tag (gtag.js) - Google Analytics */}
+      <Script async src="https://www.googletagmanager.com/gtag/js?id=G-6TYX3TM1Z4" />
+      <Script 
+      id="gtag-init"
+      strategy='afterInteractive'
+      dangerouslySetInnerHTML={{
+        __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-6TYX3TM1Z4', {
+              page_path: window.location.pathname
+            });
+      `}}/>
+      <UserProvider>
+        <Layout>
+            <Component {...pageProps} />
+        </Layout>
+      </UserProvider>
+    </>
   )
 }
 

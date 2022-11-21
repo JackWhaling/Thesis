@@ -95,6 +95,7 @@ const RawBallot: NextPage = () => {
 
   const submitForm = (e: any) => {
     e.preventDefault()
+    setError(null)
     setGettingResults(true)
     console.log(validationCheck())
     if (validationCheck()) {

@@ -101,7 +101,6 @@ def getPollDetails(id, request: Request):
 
 @app.get("/v1/polls/details/secure/{id}", status_code=status.HTTP_200_OK)
 def getSecureDeatils(id, passcode: str = "", dfpasscode: str = ""):
-    print(passcode)
     return getBallotSecure(conn, id, passcode)
 
 @app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)

@@ -33,12 +33,20 @@ def getResultsRaw(data: models.BallotRaw):
     # a set of preferences with the same order. Within this set they are seperated by commas.
     # each preference order is split by a comma
     uniqueVoters = len(splitData)
-    firstOne = splitData[0]
-    strippedString = stripReg(firstOne)
-    numCandidates = len(re.findall('[0-9]+',strippedString))
     listOfVoters = []
+    candidates = []
+    candidateNames = []
+    altCand = 1
     for i in splitData:
-        print(i)
+        if (re.match(r'# ALTERNATIVE NAME \d+: .*', i)):
+            candidates.append(str(altCand))
+            candidateName = re.search(r'# ALTERNATIVE NAME \d+: .*', i).group()
+            candidateName = stripReg(candidateName,'', r'# ALTERNATIVE NAME \d+: ')
+            candidateNames.append(candidateName)
+            altCand += 1
+            continue
+        elif (re.match(r'#.*', i)):
+            continue
         numVoters = re.search(r'\d+', i).group()
         totalVoters += int(numVoters)
         strippedVoters = stripReg(i)
@@ -58,13 +66,22 @@ def getResultsRaw(data: models.BallotRaw):
             else:
                 newSetVoter[j] = level
             level += 1
+        for cand in candidates:
+            if cand not in newSetVoter:
+                newSetVoter[cand] = level
         listOfVoters.extend([dict(newSetVoter)] * int(numVoters))
     ### list of dictionary of voters we can send to get results
     results = getResults(listOfVoters, data.voteRule, data.numWinners)
+    print(candidateNames)
+    print(results)
+    nameResults = []
+    for result in results:
+        print(result)
+        nameResults.append(candidateNames[int(result) - 1])
     responseBody = {
-        "results": results,
+        "results": nameResults,
         "numVoters": totalVoters,
-        "numCandidates": numCandidates,
+        "numCandidates": len(candidates),
         "uniqueVotes": uniqueVoters,
     }
     return toJsonResponse(200, responseBody)
@@ -72,13 +89,9 @@ def getResultsRaw(data: models.BallotRaw):
 def getResults(listOfVotes, rule, numWinners):
     #TODO return results
     convertMethod = RULE_MAP[rule]
-    print("profile for ", rule, " to be converted to: ", convertMethod)
-    print("total num of winners: ", numWinners)
-    print("voters: ", listOfVotes)
     if (convertMethod == "earProfile"):
         profile = convertToEarProfile(listOfVotes, int(numWinners))
         results = profile.earResult()
-        print(results)
         return results
     elif (convertMethod == "abcProfile"):
         profile = convertToAbcProfile(listOfVotes, int(numWinners))
@@ -89,10 +102,12 @@ def getResults(listOfVotes, rule, numWinners):
         return electedCommittee
     elif (convertMethod == "strictProfile"):
         (cands, ballots) = convertToStrict(listOfVotes)
-        print(cands, ballots)
-        election_results = pyrankvote.single_transferable_vote(cands, ballots, int(numWinners))
-        winners = election_results.get_winners()
-        print(election_results)
+        if (rule == "stv"):
+            election_results = pyrankvote.single_transferable_vote(cands, ballots, int(numWinners))
+            winners = election_results.get_winners()
+        else:
+            election_results = pyrankvote.preferential_block_voting(cands, ballots, int(numWinners))
+            winners = election_results.get_winners()
         electedCommittee = []
         for winner in winners:
             electedCommittee.append(str(winner))
@@ -111,7 +126,6 @@ def getBallotResults(conn, ballotId, userFbId):
         if (not closed and not live):
             return toJsonResponse(401, {})
         cur.execute(secondSqlQueryString, (ballotId,))
-        print(voteRule, commSize, ballotId)
         record = cur.fetchall()
         listOfVotes = []
         for row in record:

@@ -4,11 +4,15 @@ import { userContext, UserContextType } from "../../context/userState"
 import { postRecord } from "../../services/axios"
 import { auth } from "../../services/firebase"
 import { randomStyleCandA, randomListStyleA, randomStyleNameA } from "./randomStyles"
+// @ts-ignore
 
 const Ballot = (props: any) => {
-  const styleRandomList = randomListStyleA[Math.floor(Math.random() * 2)]
-  const styleRandomCand = randomStyleCandA[Math.floor(Math.random() * 4)]
-  const styleRandomName = randomStyleNameA[Math.floor(Math.random() * 2)]
+  const styleRandomListNum = Math.floor(Math.random() * 2)
+  const styleRandomCandNum = Math.floor(Math.random() * 4)
+  const styleRandomNameNum = Math.floor(Math.random() * 2)
+  const styleRandomList = randomListStyleA[styleRandomListNum]
+  const styleRandomCand = randomStyleCandA[styleRandomCandNum]
+  const styleRandomName = randomStyleNameA[styleRandomNameNum]
   const router = useRouter()
   const [loading, setLoading] = useState<boolean>(true)
   const [candidates, setCandidates] = useState<string[]>([])
@@ -17,6 +21,7 @@ const Ballot = (props: any) => {
   const { userValues, setUserValues } = useContext(
     userContext
   ) as UserContextType;
+  const start = new Date()
 
   useEffect(() => {
     if (!router.query.name) {
@@ -24,6 +29,12 @@ const Ballot = (props: any) => {
     }
     else {
       setLoading(false)
+      // @ts-ignore
+      window.gtag("event", "vote", {
+        start: `${start.toUTCString()}`,
+        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+        uid: `${userValues.id}`
+      })
     }
   }, [])
 
@@ -76,6 +87,13 @@ const Ballot = (props: any) => {
           setVoteError("You don't have permission to vote in this ballot")
         }
       })
+      // @ts-ignore
+      window.gtag("event", "vote", {
+        end: `${start.toUTCString()}`,
+        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+        uid: `${userValues.id}`
+      })
+      setVoteError("Ballot Submitted Successfully!")
       return
     }
     let valueSet = new Set()
@@ -114,6 +132,12 @@ const Ballot = (props: any) => {
         setVoteError("You've already cast a vote in this ballot.")
       } else {
         setVoteError("Ballot Submitted Successfully!")
+        // @ts-ignore
+        window.gtag("event", "vote", {
+          end: `${start.toUTCString()}`,
+          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+          uid: `${userValues.id}`
+        })
       }
     })
   }
