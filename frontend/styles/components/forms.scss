@@ -1,4 +1,5 @@
 @import "../common/variables";
+@import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap');
 
 .auth-form {
   display: flex;
@@ -22,11 +23,25 @@
   }
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .input {
   margin: 24px 0;
   height: 50px;
   position: relative;
   width: 100%;
+
+  @media screen and (max-width: 786px) {
+    margin: 16px 0;
+  }
 
   .cut {
     background-color: $constant-background;
@@ -73,6 +88,22 @@
   outline: 0;
   padding: 4px 20px 0;
   width: 100%;
+}
+
+.add-single-button {
+  border: 1px solid $constant-purple;
+  background: $constant-background;
+  border-radius: 8px;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  color: $constant-purple;
+  transform: (translateY(-50%));
+
+  &:hover {
+    background-color: $constant-purple;
+    color: $constant-white;
+  }
 }
 
 .input__field:focus ~ .cut,
@@ -141,4 +172,13 @@
     background: $constant-blue;
     color: $constant-background;
   }
+}
+
+.vote-rating {
+  text-align: center;
+  height: 80%;
+  font-size: 24px;
+  font-weight: 700;
+  align-self: center;
+  font-family: "Azeret Mono", monospace;
 }

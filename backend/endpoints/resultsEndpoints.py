@@ -17,6 +17,7 @@ from votingRules import convertToAbcProfile, convertToEarProfile, convertToStric
 from abcvoting import abcrules
 from pyrankvote import Candidate, Ballot
 import pyrankvote
+from supabase import Client
 
 
 def stripReg(string, char='', reg=r'\d+:\s*'):
@@ -116,8 +117,10 @@ def getResults(listOfVotes, rule, numWinners):
         print("wrong voting method")
     return toJsonResponse(200, {})
 
-def getBallotResults(conn, ballotId, userFbId):
-    secondSqlQueryString = "SELECT vote_object_string FROM voteschema.voteTable WHERE ballot_id = %s"
+def getBallotResults(superdb: Client, ballotId, userFbId):
+    voteInfoData = superdb.table("vote").select("vote_object_string").eq("ballot_id", ballotId).execute()
+    ballotInfoData = superdb.table("ballot").select("ballot_owner, voting_rule, committee_size, live_results, closed").eq("id", ballotId)
+    secondSqlQueryString = "SELECT vote_object_string FROM voteschema.vote WHERE ballot_id = %s"
     firstSqlQueryString = "SELECT ballot_owner, voting_rule, committee_size, live_results, closed FROM voteschema.ballot WHERE id = %s"
     cur = conn.cursor()
     try:

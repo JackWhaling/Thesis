@@ -15,7 +15,6 @@ class InviteMethod(str, Enum):
 class BallotCreate(BaseModel):
     ballotType: BallotVotingTypes
     ballotName: str
-    creatorId: int
     inviteMethod: InviteMethod
     votingRule: str
     liveResult: bool
@@ -50,6 +49,5 @@ class BallotRaw(BaseModel):
     rawData: str
 
 class AddVoters(BaseModel):
-    creatorId: str
     voters: List[str]
     ballotId: str

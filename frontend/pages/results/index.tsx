@@ -56,10 +56,8 @@ const BallotResults = (props: any) => {
         passcode: passcode,
       }
     }
-    console.log(config)
     const uriPath = `polls/details/${ballotId}`
     const res = await getRecord(uriPath, config);
-    console.log(res)
     if (res.status == 403) {
       setError("Incorrect Passcode")
       return

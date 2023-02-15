@@ -1,4 +1,5 @@
 @import "../common/variables";
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Fredoka+One&family=Solitreo&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
 
 .vote {
   &__cand-card {
@@ -6,8 +7,10 @@
     flex-direction: row;
     width: 50%;
     justify-content:space-between;
-    border: 1px solid black;
-
+    border-top: 1px solid black;
+    &:last-of-type {
+      border-bottom: 1px solid black;
+    }
     input {
       width: 50px;
     }
@@ -17,6 +20,9 @@
   }
 
   &__cand-name {
+    font-family: "Azeret Mono", monospace;
+    justify-self: center;
+    align-self: center;
     width: 100%;
     margin: 0
   }
@@ -208,5 +214,6 @@
   .vote__container {
     padding: none;
     margin: 0 !important;
+
   }
 }

@@ -5,6 +5,7 @@ import Select from "react-select";
 import { IBallots, IUser, userContext, UserContextType } from "../../../context/userState";
 import { postRecord } from "../../../services/axios";
 import { auth } from "../../../services/firebase";
+import Form from "react-bootstrap/Form"
 
 interface IBallotForm {
   name: string;
@@ -188,8 +189,9 @@ const CreateBallot: NextPage = () => {
   return (
     <div className="page-container">
       {successBallot ? 
-        <div>
-          <h3>Ballot Created (save the following information)</h3>
+        <div className="creation-container">
+          <h3>Ballot Created </h3>
+          <h3 className="save-info">(save the following information)</h3>
           <label>Passcode:</label>
           <p>{successBallot.pass}</p>
           <label>Id</label>
@@ -288,17 +290,28 @@ const CreateBallot: NextPage = () => {
           </div>
         )}
         <div className="input-checkbox">
-          <input type="checkbox" onChange={handleLiveChange}/>
-          <label>Show Live Results</label>
-          <div className="info-hover">?</div>
+          <Form.Check inline label="Show Live Results" onChange={handleLiveChange} className="checkbox"/>
+          <div className="info-hover">
+            ?
+            <span className="info-hover__tooltip">
+              Allow ballot creator to view results before closing ballot. <br /> <br />
+              Not suggested for high stake elections
+            </span>
+          </div>
         </div>
         <div className="input-checkbox">
-          <input type="checkbox" onChange={handleDoubleChange}/>
-          <label>Double Factor</label>
-          <div className="info-hover">?</div>
+          <Form.Check inline label="Double Factor" onChange={handleDoubleChange} className="checkbox"/>
+          <div className="info-hover">
+            ?
+            <span className="info-hover__tooltip">
+              Suggested for extra security<br /> <br />For each user added to the ballot, 
+              you will be provided with a unique pass code per user in order to vote along with the ballot passcode
+            </span>
+          </div>
         </div>
         <input
           type="button"
+          className="submit-button"
           disabled={!validationCheck()}
           value="Create Ballot"
           onClick={(e) => {

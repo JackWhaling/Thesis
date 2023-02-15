@@ -3,18 +3,21 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
+import os
 from firebase_admin import credentials, auth
 from firebase_admin import firestore
 from pydantic import BaseModel
 from typing import List, Dict
 from dotenv import load_dotenv
+from supabase import create_client, Client
 import models
 import time
 from datetime import date, datetime
 import psycopg2
 import os
 from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, \
-    getBallotSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot, closeBallot \
+    getBallotSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot, closeBallot, \
+    updateVote
 
 load_dotenv()
 
@@ -23,16 +26,24 @@ security = HTTPBearer()
 fbcred = firebase_admin.credentials.Certificate("./privatekey.json")
 fbapp = firebase_admin.initialize_app(fbcred)
 
+vendor_count = 10
+url: str = os.getenv("SUPABASE_URL")
+key: str = os.getenv("SUPABASE_SECRET_KEY")
+supabase: Client = create_client(url, key)
+
 def get_user_token(res: Response, credential: HTTPAuthorizationCredentials=Depends(HTTPBearer(auto_error=False))):
     if fbcred is None:
+        print("error starting firebase")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Bearer authentication is needed",
             headers={'WWW-Authenticate': 'Bearer realm="auth_required"'},
         )
     try:
+        print(credential)
         decoded_token = auth.verify_id_token(credential.credentials)
     except Exception as err:
+        print("other")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication from Firebase. {err}",
@@ -69,49 +80,43 @@ def getApp():
 # are working then we can deduce its 100% internal error
 @app.get("/v1/alive", status_code=status.HTTP_200_OK)
 def alive():
-    crsr = conn.cursor()
-    crsr.execute('SELECT version()')
-    db_version = crsr.fetchone()
+    db_version = supabase.supabase_url
     aliveText = "connected to {}".format(db_version) if (db_version) else "error"
-    crsr.close()
     firebaseText = "connected" if (fbapp) else "error"
     return {"database-check": aliveText, "firebase-check": firebaseText}
 
 
 @app.post("/v1/users/create", status_code=status.HTTP_201_CREATED)
 def createVoter(voterDetails: models.CreateVoter):
-    return createUserEntry(fbdb=fbapp, postgresdb=conn, userInfo=voterDetails)
+    return createUserEntry(superdb=supabase, userInfo=voterDetails)
 
 
 @app.get("/v1/users/{id}", status_code=status.HTTP_200_OK)
 def getUserDetails(id):
-    return getUserEntry(fbdb=fbapp, postgresdb=conn, id=id)
+    return getUserEntry(superdb=supabase, id=id)
 
 
 @app.post("/v1/polls/create", status_code=status.HTTP_201_CREATED)
 def createPoll(BallotInfo: models.BallotCreate, user = Depends(get_user_token)):
-    print(user)
-    return createBallot(fbapp, conn, BallotInfo)
+    return createBallot(supabase, BallotInfo, user)
 
 
 @app.get("/v1/polls/details/{id}", status_code=status.HTTP_200_OK)
 def getPollDetails(id, request: Request):
     headerPass = str(request.headers.get("passcode"))
-    return getBallotInfo(conn, id, headerPass)
+    return getBallotInfo(supabase, id, headerPass)
 
 @app.get("/v1/polls/details/secure/{id}", status_code=status.HTTP_200_OK)
 def getSecureDeatils(id, passcode: str = "", dfpasscode: str = ""):
-    return getBallotSecure(conn, id, passcode)
+    return getBallotSecure(supabase, id, passcode)
 
 @app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)
-def getBallotRes(id, request: Request):
-    print('hello')
-    user = 3
-    return getBallotResults(conn, id, user)
+def getBallotRes(id,):
+    return getBallotResults(supabase, id)
 
 @app.put("/v1/polls/close", status_code=status.HTTP_201_CREATED)
-def closePoll(BallotInfo: models.BallotBaseInfo):
-    return closeBallot(conn, BallotInfo.ballotId, BallotInfo.userToken)
+def closePoll(BallotInfo: models.BallotBaseInfo, user = Depends(get_user_token)):
+    return closeBallot(supabase, BallotInfo.ballotId, userId=user)
 
 @app.post("/v1/results/election", status_code=status.HTTP_200_OK)
 def definePoll(RawData: models.BallotRaw):
@@ -120,22 +125,27 @@ def definePoll(RawData: models.BallotRaw):
 # add authentication
 
 @app.put("/v1/ballots/invite", status_code=status.HTTP_201_CREATED)
-def addVoters(AddInfo: models.AddVoters):
-    creatorId = AddInfo.creatorId
+def addVoters(AddInfo: models.AddVoters, user = Depends(get_user_token)):
+    print(user)
+    creatorId = user
     votersToAdd = AddInfo.voters
     ballotId = AddInfo.ballotId
-    return addVoterToBallot(conn, creatorId, votersToAdd, ballotId)
+    convertedToAdd = []
+    for userEmail in votersToAdd: 
+        user = auth.get_user_by_email(userEmail)
+        convertedToAdd.append(user.uid)
+    return addVoterToBallot(supabase, creatorId, convertedToAdd, ballotId)
 
 @app.post("/v1/ballots/votes/give", status_code=status.HTTP_200_OK)
 def ballotVote(BasicVote: models.BallotVote, user = Depends(get_user_token)):
-    return castVote(conn, BasicVote)
+    return castVote(supabase, BasicVote, user)
 
 # add authentication
 
 
 @app.put("/v1/ballots/update", status_code=status.HTTP_201_CREATED)
-def updateBallot(UpdateVote: models.BallotVote):
-    return {}
+def updateBallot(UpdateVote: models.BallotVote, user = Depends(get_user_token)):
+    return updateVote(supabase, UpdateVote, user)
 
 # logger (keeps track of API performance) Runs for each request of the api
 

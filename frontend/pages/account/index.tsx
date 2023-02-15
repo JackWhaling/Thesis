@@ -61,19 +61,19 @@ const Account: NextPage = () => {
   }
 
   const addVoter = (e: any) => {
-    if (voters.includes(e.target.value)) {
-      setError("Candidate already exists")
+    if (voters.includes(currVoter)) {
+      setError("Voter already added")
       setCurrVoter("")
       return
     }
 
-    if (e.target.value == "") {
-      setError("Cant have an empty candidate")
+    if (currVoter== "") {
+      setError("No email given")
       return
     }
     setVoters((prevState: string[] | any) => [
       ...prevState,
-      e.target.value,
+      currVoter,
     ]);
     setCurrVoter("");
   };
@@ -134,7 +134,13 @@ const Account: NextPage = () => {
       voters: voters,
       ballotId: ballotId
     }
-    const res = await putRecord(uriPath, postData)
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+
+    const res = await putRecord(uriPath, postData, config)
     if (res.status === 403) {
       setError("Someone you tried to add doesn't exist in our system")
       return
@@ -153,8 +159,13 @@ const Account: NextPage = () => {
       userToken: userValues.postgresId,
       ballotId: ballotId,
     }
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
 
-    const res = await putRecord(putUrl, body)
+    const res = await putRecord(putUrl, body, config)
     if (res.status == 201) {
       const index = userValues.ownedBallots.findIndex(ballot =>{
         return ballot.id === ballotId  
@@ -337,6 +348,12 @@ const Account: NextPage = () => {
               />
               <div className="cut cut-large"></div>
               <label className="input__label">Voter Email</label>
+              <button className="add-single-button" onClick={(e) => 
+                {
+                  setError(null)
+                  addVoter(e)
+                }
+              }>Add voter</button>
             </div>
             {voters.length > 0 && <div className="list-added-candidates">
               {voters?.map((voter) => (

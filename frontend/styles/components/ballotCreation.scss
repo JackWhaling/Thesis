@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  margin-bottom: 8px;
 
   .added-cand {
     &__container{
@@ -40,12 +41,72 @@
   }
 }
 
+.submit-button {
+  border: 2px solid $constant-purple;
+  border-radius: 8px;
+  color: $constant-purple;
+  background-color: $constant-white;
+  width: 300px;
+  height: 48px;
+  justify-self: center;
+  align-self: center;
+
+  &:hover:not(:disabled)  {
+    background-color: $constant-purple;
+    color: $constant-white;
+    box-shadow: 0 0 0 0.25rem $constant-purple-fadest;
+  }
+
+  &:disabled {
+    border: 2px solid $constant-purple-fader;
+    color: $constant-purple-fader;
+  }
+
+  @media screen and (max-width: 768px) { 
+    width: 200px;
+    height: 32px;
+    justify-content: center;
+    align-self: center;
+    justify-self: center;
+  }
+}
+
+.ballot-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-checkbox:last-of-type {
+  @media screen and (max-width: 768px) { 
+    margin: 0 0 16px 0;
+
+  }
+}
+
 .input-checkbox {
+  width: 100%;
+  align-items: center;
   display: flex;
   flex-direction: row;
+  margin: 16px 0;
+
+  @media screen and (max-width: 768px) { 
+    margin: 16px 0;
+
+    .form-check-label {
+      font-size: 16px;
+    }
+
+    .form-check-input {
+      height: 16px;
+      width: 16px;
+      margin-right: 8px;
+    }
+  }
 
   .info-hover {
-    background-color: $constant-blue;
+    background-color: $constant-purple;
+    color: $constant-white;
     width: 16px;
     height: 16px;
     border-radius: 50%;
@@ -54,6 +115,59 @@
     font-size: smaller;
     justify-content: center;
     align-items: center;
-    margin-left: 8px;
+    align-self: center;
+    position: relative;
+    cursor: help;
+
+    &__tooltip {
+      visibility: hidden;
+      width: 120px;
+      background-color: black;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px 4px;
+      transition: all .15s ease-in;
+      transform: translate(-50%, 1em);
+      left: 50%;
+      bottom: calc(100% + 8px);
+
+      /* Position the tooltip */
+      position: absolute;
+      width: 300px;
+      z-index: 1;
+    }
+
+    &:active .info-hover__tooltip {
+      visibility: visible;
+      transform: translate(-50%, 0);
+    }
+
+    &:hover .info-hover__tooltip {
+      visibility: visible;
+      transform: translate(-50%, 0);
+    }
+  }
+}
+
+.creation-container {
+  background-color: $constant-white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0px 0px 18px -6px rgb(101, 101, 101);
+
+  button {
+    border-radius: 8px;
+    border: 2px solid $constant-purple;
+    color: $constant-purple;
+    box-shadow: none;
+  }
+
+  .save-info {
+    font-size: 16px;
+
+    @media screen and (max-width: 786px) {
+      font-size: 12px !important;
+    }
   }
 }

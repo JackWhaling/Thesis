@@ -15,12 +15,12 @@ CREATE TABLE voteschema.voter (
 	email TEXT NOT NULL UNIQUE
 )
 
-CREATE TABLE voteschema.voteTable (
-	voter_id BIGSERIAL,
+CREATE TABLE voteschema.vote (
+	voter_id text,
 	ballot_id BIGSERIAL,
-	vote_object_string TEXT,
-	passcode TEXT,
-	PRIMARY KEY (voter_id, ballot_id),
-	CONSTRAINT fk_voter FOREIGN KEY(voter_id) REFERENCES voteschema.voter(id),
+	vote_object_string text,
+	passcode text,
+	primary key (voter_id, ballot_id),
+	CONSTRAINT fk_voter FOREIGN KEY(voter_id) REFERENCES voteschema.voter(fb_key),
 	CONSTRAINT fk_ballot FOREIGN KEY(ballot_id) REFERENCES voteSchema.ballot(id)
-);
+)

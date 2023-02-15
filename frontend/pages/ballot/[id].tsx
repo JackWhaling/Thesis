@@ -1,4 +1,4 @@
-import { useRouter } from "next/router"
+import { useRouter, withRouter } from "next/router"
 import { useEffect, useState, useContext } from "react"
 import { userContext, UserContextType } from "../../context/userState"
 import { postRecord } from "../../services/axios"
@@ -14,21 +14,36 @@ const Ballot = (props: any) => {
   const styleRandomCand = randomStyleCandA[styleRandomCandNum]
   const styleRandomName = randomStyleNameA[styleRandomNameNum]
   const router = useRouter()
+  const payload = router.query;
   const [loading, setLoading] = useState<boolean>(true)
   const [candidates, setCandidates] = useState<string[]>([])
   const [voteError, setVoteError] = useState<string | null>(null)
   const [isApproval, setIsApproval] = useState<boolean>(false)
+  const [dfaReuired, setDfaRequired] = useState<boolean>(false)
+  const [dfaCode, setDfaCode] = useState<string>("")
+  const [toUpdate, setToUpdate] = useState<boolean>(false)
   const { userValues, setUserValues } = useContext(
     userContext
   ) as UserContextType;
   const start = new Date()
+
+  const shuffle = (array: any) => {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+    }
+    console.log(array)
+    return array;
+  };
+
 
   useEffect(() => {
     if (!router.query.name) {
       router.push("/")
     }
     else {
-      setLoading(false)
       // @ts-ignore
       window.gtag("event", "vote", {
         start: `${start.toUTCString()}`,
@@ -40,12 +55,16 @@ const Ballot = (props: any) => {
 
   useEffect(() => {
     //@ts-ignore
-    setCandidates(router.query.candidates)
-    setIsApproval(router.query.votingMethod === "approval")
-  }, [router.query])
+    //@ts-ignore
+    console.log(`payload: ${payload.candidates}`)
+    const candidates = payload.candidates
+    //@ts-ignore
+    setCandidates(shuffle(payload.candidates))
+    setIsApproval(payload.votingMethod === "approval")
+  }, [payload])
 
   useEffect(() => {
-    console.log(candidates)
+    setLoading(false)
   },[candidates])
 
   const isStrictCheck = (values: Set<any>) => {
@@ -82,7 +101,6 @@ const Ballot = (props: any) => {
       }
       const res = postRecord(uriPath, postData, config)
       res.then((data) => {
-        console.log(data)
         if (data.status === 409) {
           setVoteError("You don't have permission to vote in this ballot")
         }
@@ -149,12 +167,10 @@ const Ballot = (props: any) => {
         <h1 className="vote__title">{router.query.name}</h1>
         <form onSubmit={handleVote} className='form__vote'>
         <div className="vote__cand-list" style={styleRandomList}>
-        {candidates.map((x) => {
-          console.log(styleRandomName)
-
+        {candidates?.map((x) => {
           return (
             <div className="vote__cand-card" key={x} style={styleRandomCand}>
-              <h3 className="vote__cand-name" style={styleRandomName}>{x}</h3> {router.query.votingMethod == "approval" ? <input type="checkbox" name={x}/> : <input type="number" name={x} max={candidates.length} min="1"/>}
+              <h3 className="vote__cand-name" style={styleRandomName}>{x}</h3> {router.query.votingMethod == "approval" ? <input type="checkbox" name={x}/> : <input type="number" className="vote-rating" name={x} max={candidates.length} min="1"/>}
             </div>
           )
         })}
@@ -168,4 +184,4 @@ const Ballot = (props: any) => {
   )
 }
 
-export default Ballot;
+export default withRouter(Ballot);
