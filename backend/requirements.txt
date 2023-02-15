@@ -1,7 +1,6 @@
 abcvoting==2.5.0
 fastapi==0.92.0
 firebase_admin==5.2.0
-numpy==1.23.3
 psycopg2==2.9.3
 pydantic==1.10.4
 pyrankvote==2.0.6

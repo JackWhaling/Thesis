@@ -1,6 +1,5 @@
 from typing import List
 from collections import defaultdict
-import numpy
 from math import floor
 
 class EarProfile:

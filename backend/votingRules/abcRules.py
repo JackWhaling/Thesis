@@ -9,8 +9,6 @@ import math
 from operator import itemgetter
 from pyrankvote import Candidate, Ballot
 
-from numpy import sort
-
 
 """
  FOR EAR VOTING CLASS:
