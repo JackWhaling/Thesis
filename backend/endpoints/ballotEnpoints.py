@@ -10,7 +10,6 @@ from models import BallotCreate, BallotVote, BallotBaseInfo
 import json
 import bcrypt
 import os
-import psycopg2.extras
 from helpers import toJsonResponse
 from dotenv import load_dotenv
 from supabase import Client

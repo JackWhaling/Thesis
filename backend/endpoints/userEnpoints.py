@@ -6,7 +6,6 @@ from firebase_admin import auth
 from firebase_admin import exceptions
 from models import CreateVoter
 from pydantic import BaseModel
-import psycopg2
 import os
 from helpers import toJsonResponse
 from supabase import Client

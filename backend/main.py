@@ -13,7 +13,6 @@ from supabase import create_client, Client
 import models
 import time
 from datetime import date, datetime
-import psycopg2
 import os
 from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, \
     getBallotSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot, closeBallot, \
@@ -51,14 +50,6 @@ def get_user_token(res: Response, credential: HTTPAuthorizationCredentials=Depen
         )
     res.headers['WWW-Authenticate'] = 'Bearer realm="auth_required"'
     return decoded_token['uid']
-
-conn = psycopg2.connect(
-    host=os.getenv('DB_HOST'),
-    password=os.getenv('DB_PASSWORD'),
-    port=os.getenv('DB_PORT'),
-    user=os.getenv('DB_USER'),
-    dbname=os.getenv('DB_DATABASE')
-)
 
 origins = ["*"]
 
