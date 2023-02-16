@@ -3,7 +3,7 @@ import { useEffect, useState, useContext } from "react"
 import { userContext, UserContextType } from "../../context/userState"
 import { postRecord } from "../../services/axios"
 import { auth } from "../../services/firebase"
-import { randomStyleCandA, randomListStyleA, randomStyleNameA } from "./randomStyles"
+import { randomStyleCandA, randomListStyleA, randomStyleNameA } from "../../components/shared/randomStyles"
 // @ts-ignore
 
 const Ballot = (props: any) => {
