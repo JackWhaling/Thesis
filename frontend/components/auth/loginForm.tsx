@@ -49,7 +49,7 @@ const LoginForm = () => {
         let ownedBallots: IBallots[] = []
         let userBallots: IBallots[] = []
         userData.userBallots.forEach((ballot: any) => {
-          var newBallot: IBallots = {id: "", name: "", open: false, live: false}
+          var newBallot: IBallots = {id: "", name: "", open: false, live: false, doubleFactor: false}
           newBallot.name = ballot.ballotName
           newBallot.id = ballot.ballotId
           newBallot.open = !ballot.closed
@@ -58,7 +58,7 @@ const LoginForm = () => {
         })
 
         userData.ownedBallots.forEach((ballot: any) => {
-          var newBallot: IBallots = {id: "", name: "", open: false, live: false}
+          var newBallot: IBallots = {id: "", name: "", open: false, live: false, doubleFactor: false}
           newBallot.name = ballot.ballotName
           newBallot.id = ballot.ballotId
           newBallot.open = !ballot.closed
