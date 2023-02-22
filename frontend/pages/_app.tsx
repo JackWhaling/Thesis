@@ -13,6 +13,8 @@ import { UserProvider } from '../context/userState'
 import Script from 'next/script'
 import { BallotProvider } from '../context/ballotState'
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
