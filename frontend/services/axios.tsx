@@ -1,8 +1,12 @@
 import Axios from "axios";
+import https from "https"
 
-const API = Axios.create({
+const API = Axios.create ({
   baseURL: `https://13.54.67.138/v1/`,
   timeout: 30000,
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false
+  })
 })
 
 const exceptionHandler = (e: any) => {
