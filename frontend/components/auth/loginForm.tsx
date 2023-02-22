@@ -5,6 +5,7 @@ import { IUser, userContext, UserContextType } from "../../context/userState";
 import app, { auth } from "../../services/firebase";
 import { getRecord, postRecord } from "../../services/axios";
 import { IBallots } from "../../context/userState";
+import https from "https"
 
 const LoginForm = () => {
   const router = useRouter();
@@ -44,7 +45,10 @@ const LoginForm = () => {
         const userToken = await user?.getIdToken()
         const userID = user?.uid;
         const uriPath = `users/${userID}`;
-        const userDetails = await getRecord(uriPath);
+        const agent = new https.Agent({  
+          rejectUnauthorized: false
+        });
+        const userDetails = await getRecord(uriPath, { httpsAgent: agent });
         const userData = userDetails.data;
         let ownedBallots: IBallots[] = []
         let userBallots: IBallots[] = []
