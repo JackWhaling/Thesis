@@ -92,7 +92,7 @@ const CreateBallot: NextPage = () => {
         }
         const res = await postRecord(uriValue, postData, config)
           if (res.status === 201) {
-            let newBallot: IBallots = {id: res.data.ballotId, name: formState.name, open: true, live: postData.liveResult}
+            let newBallot: IBallots = {id: res.data.ballotId, name: formState.name, open: true, live: postData.liveResult, doubleFactor: formState.doubleAuth}
             setUserValues((prevState: IUser | any) => ({
               ...prevState,
               ownedBallots: [...prevState.ownedBallots, newBallot]

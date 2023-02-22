@@ -7,6 +7,9 @@ import { IBallots, userContext, UserContextType } from "../../context/userState"
 import { Modal } from "react-bootstrap";
 import { getRecord, postRecord, putRecord } from "../../services/axios";
 import { auth } from "../../services/firebase";
+import { ballotContext, BallotContextType, IBallot } from "../../context/ballotState";
+import SingleAddVoter from "../../components/ballot/singleAddVoters";
+import MultiAddBody from "../../components/ballot/multiAddVoters";
 
 interface IBallotInfo {
   ballotId: string;
@@ -24,14 +27,19 @@ const Account: NextPage = () => {
     userContext
   ) as UserContextType;
 
+  const { ballotValues, setBallotValues } = useContext(ballotContext) as BallotContextType;
   const [showIncorrect, setIncorrect] = useState<boolean>(false)
   const [voteModal, setVoteModal] = useState<boolean>(false)
   const [addModal, setAddModal] = useState<boolean>(false)
   const [passcode, setPasscode] = useState<string>("")
+  const [selectedAddBallot, setSelectedBallot] = useState<IBallots | null>(null)
+  const [voterAdded, setVoterAdded] = useState<boolean>(false)
   const [selectedBallotId, setSelectedBallotId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [voters, setVoters] = useState<string[]>([])
   const [currVoter, setCurrVoter] = useState<string>("")
+  const [isDfaAdd, setIsDfaAdd] = useState<boolean>(false)
+  const [givenPass, setGivenPass] = useState<string>("")
 
   const router = useRouter();
 
@@ -43,7 +51,6 @@ const Account: NextPage = () => {
   );
 
   useEffect(() => {
-    console.log(userValues)
 
     if (userValues.id === "") {
       router.push("/");
@@ -66,7 +73,6 @@ const Account: NextPage = () => {
       setCurrVoter("")
       return
     }
-
     if (currVoter== "") {
       setError("No email given")
       return
@@ -78,10 +84,24 @@ const Account: NextPage = () => {
     setCurrVoter("");
   };
 
-  const removeVoter = (voter: string) => {
+  const removeVoter = (voter: string, e:any) => {
+    e.preventDefault()
     // @ts-ignore
     setVoters(voters?.filter((item) => item !== voter));
   };
+
+  const onKeyDownMulti = (e: any) => {
+    if (e.key === "Enter") {
+      setError(null)
+      addVoter(currVoter);
+    }
+  }
+
+  const addVoterFunc = (e: any) => {
+    console.log(voters)
+    setError(null)
+    addVoter(e)
+  }
 
   const handleGotoVote = async (id: string, passcode: string) => {
     const config = {
@@ -97,30 +117,68 @@ const Account: NextPage = () => {
     }
     setIncorrect(false)
     hideVoteModal();
-    const passQuery = {
+    // @ts-ignore
+    setBallotValues({
       name: res.data.ballotName,
       candidates: res.data.candidates,
       committeeSize: res.data.committeeSize,
       elected: res.data.elected,
+      // @ts-ignore
       liveResults: res.data.liveResults,
+      // @ts-ignore
       owner: res.data.owner,
       votingMethod: res.data.votingMethod,
       closed: res.data.closed,
       ballotId: id,
-    }
-    router.push({pathname: `/ballot/${id}`, query: passQuery}, `/ballot/${id}`)
+    })
   }
 
-  const addVotersModal = (ballotId: any) => {
+  useEffect(() => {
+    if (ballotValues.ballotId != "") {
+      router.push(`/ballot/${ballotValues.ballotId}`)
+    }
+  }, [ballotValues])
+
+  const addVotersModal = (ballotId: any, doubleFactor: boolean, ballot: IBallots) => {
     setSelectedBallotId(ballotId)
     setError(null)
+    setIsDfaAdd(doubleFactor)
     setAddModal(true)
+    setSelectedBallot(ballot)
   }
 
   const closeAddModal = () => {
     setAddModal(false)
+    setIsDfaAdd(false)
+    setVoters([])
   }
 
+  const addVoterSecure = async (e: any) => {
+    const uriPath = "/ballots/invite/secure"
+    const postData = {
+      voter: currVoter,
+      ballotId: selectedAddBallot?.id
+    }
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+
+    const res = await putRecord(uriPath, postData, config)
+    if (res.status === 403) {
+      setError("Someone you tried to add doesn't exist in our system")
+      return
+    }
+    if (res.status !== 201) {
+      setError("Failed to add this voter to the ballot (this account may not exist)")
+      return
+    }
+    setVoterAdded(true)
+    addVoter(currVoter)
+    setError("")
+    setGivenPass(res.data.code)
+  }
   
   const handleVoterChange = (e: any) => {
     setCurrVoter(e.target.value);
@@ -128,9 +186,7 @@ const Account: NextPage = () => {
 
   const addVoters = async (ballotId: string, userId: any) => {
     const uriPath = "/ballots/invite"
-    console.log(userValues.postgresId)
     const postData = {
-      creatorId: userValues.postgresId,
       voters: voters,
       ballotId: ballotId
     }
@@ -146,7 +202,7 @@ const Account: NextPage = () => {
       return
     }
     if (res.status !== 201) {
-      setError("You can't add voters to this ballot")
+      setError("Failed to add users to the ballots, either someone has already been added or an account doesn't exist in our system")
       return
     }
     setVoters([])
@@ -224,7 +280,6 @@ const Account: NextPage = () => {
             <h4>Your Open Ballots:</h4>
             <div className="card-container">
               {openBallots.map((ballot: IBallots) => {
-                console.log(ballot)
                 return (
                 <div className="ballot__card" key={ballot.id} onClick={(e) => showVoteModal(ballot.id)}>
                   <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
@@ -269,7 +324,7 @@ const Account: NextPage = () => {
               </div>
               <div className="add-voters" onClick={(e) => {
                 e.preventDefault()
-                addVotersModal(ballot.id)
+                addVotersModal(ballot.id, ballot.doubleFactor, ballot)
               }}>
                 Add Voters +
               </div>
@@ -328,55 +383,37 @@ const Account: NextPage = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="voters-list-input__container">
-            <div className="input">
-              <input
-                className="input__field"
-                name="candidate"
-                type="text"
-                placeholder="Add new candidate"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    setError(null)
-                    addVoter(e);
-                  }
-                }}
-                onChange={(e) => {
-                  handleVoterChange(e);
-                }}
-                value={currVoter}
-              />
-              <div className="cut cut-large"></div>
-              <label className="input__label">Voter Email</label>
-              <button className="add-single-button" onClick={(e) => 
-                {
-                  setError(null)
-                  addVoter(e)
-                }
-              }>Add voter</button>
-            </div>
-            {voters.length > 0 && <div className="list-added-candidates">
-              {voters?.map((voter) => (
-                <div
-                  className="added-cand__container"
-                  key={voter}
-                  onClick={(e) => removeVoter(voter)}
-                >
-                  <div className="added-cand__name">{voter}</div>
-                  <div className="added-cand__remove">-</div>
-                </div>
-              ))}
-            </div>}
-          </div>
+          {isDfaAdd && 
+            <SingleAddVoter 
+              voterChangeFunc={handleVoterChange} 
+              closeFunc={closeAddModal}
+              voters={voters}
+              currVoter={currVoter}
+              passcode={givenPass}
+              addSingleClickFunc={addVoterSecure}
+              voterAdded={voterAdded}
+            />
+          }
+          {!isDfaAdd && 
+            <MultiAddBody
+              voterChangeFunc={handleVoterChange}
+              voters={voters}
+              currVoter={currVoter}
+              removeVoter={removeVoter}
+              addSingleClickFunc={addVoterFunc}
+              keyDownFunc={onKeyDownMulti}
+            />
+          }
         </Modal.Body>
         <Modal.Footer>
           {error && <div className="error-container">{error}</div>}
-          <input type="submit" value="Add Voters" onClick={(e) => {
+          {!isDfaAdd && <input type="submit" value="Add Voters" onClick={(e) => {
               e.preventDefault()
               addVoters(selectedBallotId, userValues.postgresId)
             }}
             disabled={voters.length === 0}
-          />
+          />}
+          {isDfaAdd && <div className="dfa-close" onClick={closeAddModal}>Close</div>}
         </Modal.Footer>
       </Modal>
     </div>

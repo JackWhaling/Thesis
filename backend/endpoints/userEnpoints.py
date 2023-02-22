@@ -29,13 +29,12 @@ def getUserEntry(superdb: Client, id):
   if (len(userBaseData.data) <= 0):
     return toJsonResponse(409, {})
   databaseId = userBaseData.data[0]["id"]
-  ownedBallotData = superdb.table("ballot").select("ballot_name, id, closed, live_results").eq("ballot_owner", id).execute()
+  ownedBallotData = superdb.table("ballot").select("ballot_name, id, closed, live_results, double_factor").eq("ballot_owner", id).execute()
   for ballot in ownedBallotData.data:
-    print(ballot)
-    (ballotId, ballotName, closed, live) = itemgetter("id", "ballot_name", "closed", "live_results")(ballot)
-    ownedBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed, "live": live})
+    (ballotId, ballotName, closed, live, doubleFactor) = itemgetter("id", "ballot_name", "closed", "live_results", "double_factor")(ballot)
+    ownedBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed, "live": live, "dfa": doubleFactor})
   ballotsData = superdb.table("vote").select("ballot_id, ballot (id, ballot_name, closed, live_results, double_factor)").eq("voter_id", id).execute()
   for ballot in ballotsData.data:
     (ballotId, ballotName, closed, live) = itemgetter("id", "ballot_name", "closed", "live_results")(ballot["ballot"])
-    userBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed, "live": live})
+    userBallots.append({"ballotId": ballotId, "ballotName": ballotName, "closed": closed, "live": live })
   return toJsonResponse(200, {"userBallots": userBallots, "ownedBallots": ownedBallots, "postId": databaseId})

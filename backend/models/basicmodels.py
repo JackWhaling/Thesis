@@ -37,9 +37,18 @@ class CreateVoter(BaseModel):
     userId: str
     email: str
 
+class BallotVoteSecure(BaseModel):
+    timeDiff: str
+    voteOrder: Dict[int, str]
+    styleGenerated: str
+    ballotId: str
+    dfaCode: str
+    ballot: Dict[str, int]
 
 class BallotVote(BaseModel):
-    userToken: str
+    timeDiff: str
+    voteOrder: Dict[int, str]
+    styleGenerated: str
     ballotId: str
     ballot: Dict[str, int]
 
@@ -50,4 +59,8 @@ class BallotRaw(BaseModel):
 
 class AddVoters(BaseModel):
     voters: List[str]
+    ballotId: str
+
+class AddSingleVoter(BaseModel):
+    voter: str
     ballotId: str

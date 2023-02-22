@@ -15,8 +15,8 @@ import time
 from datetime import date, datetime
 import os
 from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, \
-    getBallotSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot, closeBallot, \
-    updateVote
+    updateVoteSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot, closeBallot, \
+    updateVote, addVoteSecure, addVoterToSecureBallot
 
 load_dotenv()
 
@@ -97,10 +97,6 @@ def getPollDetails(id, request: Request):
     headerPass = str(request.headers.get("passcode"))
     return getBallotInfo(supabase, id, headerPass)
 
-@app.get("/v1/polls/details/secure/{id}", status_code=status.HTTP_200_OK)
-def getSecureDeatils(id, passcode: str = "", dfpasscode: str = ""):
-    return getBallotSecure(supabase, id, passcode)
-
 @app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)
 def getBallotRes(id,):
     return getBallotResults(supabase, id)
@@ -117,7 +113,6 @@ def definePoll(RawData: models.BallotRaw):
 
 @app.put("/v1/ballots/invite", status_code=status.HTTP_201_CREATED)
 def addVoters(AddInfo: models.AddVoters, user = Depends(get_user_token)):
-    print(user)
     creatorId = user
     votersToAdd = AddInfo.voters
     ballotId = AddInfo.ballotId
@@ -127,12 +122,28 @@ def addVoters(AddInfo: models.AddVoters, user = Depends(get_user_token)):
         convertedToAdd.append(user.uid)
     return addVoterToBallot(supabase, creatorId, convertedToAdd, ballotId)
 
+@app.put("/v1/ballots/invite/secure", status_code=status.HTTP_201_CREATED)
+def addSingleVoter(AddInfo: models.AddSingleVoter, user = Depends(get_user_token)):
+    creatorId = user
+    voterToAdd = AddInfo.voter
+    ballotId = AddInfo.ballotId
+    user = auth.get_user_by_email(voterToAdd)
+    voterToAdd = user.uid
+    return addVoterToSecureBallot(supabase, creatorId, voterToAdd, ballotId)
+
+
 @app.post("/v1/ballots/votes/give", status_code=status.HTTP_200_OK)
 def ballotVote(BasicVote: models.BallotVote, user = Depends(get_user_token)):
     return castVote(supabase, BasicVote, user)
 
-# add authentication
+@app.post("/v1/ballots/votes/secure", status_code=status.HTTP_200_OK)
+def ballotVoteSecure(BasicVoteSecure: models.BallotVoteSecure, user = Depends(get_user_token)):
+    return addVoteSecure(supabase, BasicVoteSecure, user)
 
+# add authentication
+@app.post("/v1/ballots/update/secure", status_code=status.HTTP_200_OK)
+def ballotVoteSecure(BasicVoteSecure: models.BallotVoteSecure, user = Depends(get_user_token)):
+    return updateVoteSecure(supabase, BasicVoteSecure, user)
 
 @app.put("/v1/ballots/update", status_code=status.HTTP_201_CREATED)
 def updateBallot(UpdateVote: models.BallotVote, user = Depends(get_user_token)):

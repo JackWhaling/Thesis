@@ -15,3 +15,25 @@ export function shuffle(array: any) {
 
   return array;
 }
+
+export function diffTime(d1: any, d2: any) {
+    const d3 = new Date(d2 - d1);
+    const d0 = new Date(0);
+
+    return {
+        getHours: function(){
+            return d3.getHours() - d0.getHours();
+        },
+        getMinutes: function(){
+            return d3.getMinutes() - d0.getMinutes();
+        },
+        getMilliseconds: function() {
+            return d3.getMilliseconds() - d0.getMilliseconds();
+        },
+        toString: function(){
+            return this.getHours() + ":" +
+                   this.getMinutes() + ":" + 
+                   this.getMilliseconds();
+        },
+    };
+}

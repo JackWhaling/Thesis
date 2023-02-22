@@ -16,6 +16,7 @@ export interface IBallots {
   name: string;
   open: boolean;
   live: boolean | null;
+  doubleFactor: boolean;
 }
 
 export const INITIAL_USER_STATE = {
@@ -46,11 +47,13 @@ export const UserProvider = ({ children }: UserContextProviderProps) => {
 
       const loggedUser = user?.uid
       const token = await user?.getIdToken()
+      const email = user?.email
       if (loggedUser) {
         setUserValues((prevState: IUser | any) => ({
           ...prevState,
           id: loggedUser,
           token: token,
+          email: email,
         }))
         const uriPath = `users/${loggedUser}`;
         const userDetails = await getRecord(uriPath);
@@ -58,7 +61,7 @@ export const UserProvider = ({ children }: UserContextProviderProps) => {
         let ownedBallots: IBallots[] = []
         let userBallots: IBallots[] = []
         userData?.userBallots?.forEach((ballot: any) => {
-          var newBallot: IBallots = {id: "", name: "", open: false, live: false}
+          var newBallot: IBallots = {id: "", name: "", open: false, live: false, doubleFactor: false}
           newBallot.name = ballot.ballotName
           newBallot.id = ballot.ballotId
           newBallot.open = !ballot.closed
@@ -67,11 +70,12 @@ export const UserProvider = ({ children }: UserContextProviderProps) => {
         })
 
         userData?.ownedBallots?.forEach((ballot: any) => {
-          var newBallot: IBallots = {id: "", name: "", open: false, live: false}
+          var newBallot: IBallots = {id: "", name: "", open: false, live: false, doubleFactor: false}
           newBallot.name = ballot.ballotName
           newBallot.id = ballot.ballotId
           newBallot.open = !ballot.closed
           newBallot.live = ballot.live
+          newBallot.doubleFactor = ballot.dfa
           ownedBallots.push(newBallot)
         })
         setUserValues((prevState: IUser | any) => ({

@@ -11,6 +11,7 @@ import type { AppProps } from 'next/app'
 import Layout from '../components/shared/layout'
 import { UserProvider } from '../context/userState'
 import Script from 'next/script'
+import { BallotProvider } from '../context/ballotState'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -30,9 +31,11 @@ function MyApp({ Component, pageProps }: AppProps) {
             });
       `}}/>
       <UserProvider>
-        <Layout>
-            <Component {...pageProps} />
-        </Layout>
+        <BallotProvider>
+          <Layout>
+              <Component {...pageProps} />
+          </Layout>
+        </BallotProvider>
       </UserProvider>
     </>
   )

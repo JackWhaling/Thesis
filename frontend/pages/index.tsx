@@ -44,13 +44,11 @@ const Home: NextPage = () => {
 
   const handleGotoVote = async (e: any) => {
     e.preventDefault();
-    console.log("hello")
     const config = {
       headers: {
         passcode: voteState.ballotPass,
       }
     }
-    console.log(config)
     const uriPath = `polls/details/${voteState.ballotId}`
     const res = await getRecord(uriPath, config);
     console.log(res)
@@ -60,7 +58,6 @@ const Home: NextPage = () => {
     }
     setIncorrect(false)
     hideVoteModal();
-    console.log(res)
     const passQuery = {
       name: res.data.ballotName,
       candidates: res.data.candidates,

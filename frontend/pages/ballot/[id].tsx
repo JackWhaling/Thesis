@@ -1,31 +1,40 @@
 import { useRouter, withRouter } from "next/router"
 import { useEffect, useState, useContext } from "react"
 import { userContext, UserContextType } from "../../context/userState"
-import { postRecord } from "../../services/axios"
+import { postRecord, putRecord } from "../../services/axios"
 import { auth } from "../../services/firebase"
 import { randomStyleCandA, randomListStyleA, randomStyleNameA } from "../../components/shared/randomStyles"
+import { integerPropType } from "@mui/utils"
+import { ballotContext, BallotContextType } from "../../context/ballotState"
+import DfaCard from "../../components/ballots/dfaCard"
+import UpdateCard from "../../components/ballots/updateBallotCard"
+import { diffTime } from "../../services/helpers"
 // @ts-ignore
 
 const Ballot = (props: any) => {
-  const styleRandomListNum = Math.floor(Math.random() * 2)
-  const styleRandomCandNum = Math.floor(Math.random() * 4)
-  const styleRandomNameNum = Math.floor(Math.random() * 2)
+  const { ballotValues, setBallotValues } = useContext(ballotContext) as BallotContextType
+  const [styleRandomListNum, setStyleRandomListNum] = useState<number>(Math.floor(Math.random() * 2))
+  const [styleRandomCandNum, setStyleRandomCandNum] = useState<number>(Math.floor(Math.random() * 4))
+  const [styleRandomNameNum, setStyleRandomNameNum] = useState<number>(Math.floor(Math.random() * 2))
   const styleRandomList = randomListStyleA[styleRandomListNum]
   const styleRandomCand = randomStyleCandA[styleRandomCandNum]
   const styleRandomName = randomStyleNameA[styleRandomNameNum]
   const router = useRouter()
-  const payload = router.query;
   const [loading, setLoading] = useState<boolean>(true)
-  const [candidates, setCandidates] = useState<string[]>([])
+  const [candidates, setCandidates] = useState<string[]>(ballotValues.candidates)
   const [voteError, setVoteError] = useState<string | null>(null)
-  const [isApproval, setIsApproval] = useState<boolean>(false)
+  const [isApproval, setIsApproval] = useState<boolean>(ballotValues.votingMethod === "approval")
   const [dfaReuired, setDfaRequired] = useState<boolean>(false)
   const [dfaCode, setDfaCode] = useState<string>("")
   const [toUpdate, setToUpdate] = useState<boolean>(false)
+  const [voteOrder, setVoteOrder] = useState<any>({})
+  const [voteObject, setVoteObject] = useState<any>({})
+  const [invalidDfa, setInvalidDfa] = useState<boolean>(false)
   const { userValues, setUserValues } = useContext(
     userContext
   ) as UserContextType;
-  const start = new Date()
+  const [start, setStart] = useState<any>(new Date())
+
 
   const shuffle = (array: any) => {
     for (var i = array.length - 1; i > 0; i--) {
@@ -34,34 +43,19 @@ const Ballot = (props: any) => {
       array[i] = array[j];
       array[j] = temp;
     }
-    console.log(array)
     return array;
   };
 
 
   useEffect(() => {
-    if (!router.query.name) {
+    if (ballotValues.ballotId == "") {
       router.push("/")
     }
-    else {
-      // @ts-ignore
-      window.gtag("event", "vote", {
-        start: `${start.toUTCString()}`,
-        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-        uid: `${userValues.id}`
-      })
-    }
+    setBallotValues((prevState) => ({
+      ...prevState,
+      candidates: shuffle(prevState.candidates)
+    }))
   }, [])
-
-  useEffect(() => {
-    //@ts-ignore
-    //@ts-ignore
-    console.log(`payload: ${payload.candidates}`)
-    const candidates = payload.candidates
-    //@ts-ignore
-    setCandidates(shuffle(payload.candidates))
-    setIsApproval(payload.votingMethod === "approval")
-  }, [payload])
 
   useEffect(() => {
     setLoading(false)
@@ -72,6 +66,21 @@ const Ballot = (props: any) => {
       return true
     }
     return false
+  }
+
+  const handleSelectValue = (index: number, e: any) => {
+    e.preventDefault()
+    if (!e.target.value) {
+      return
+    }
+    if (e.target.value <= 0 || e.target.value > candidates.length) {
+      return
+    }
+    setVoteOrder((prevState: any) => ({
+      ...prevState,
+      [index]: e.target.value,
+      }
+    ))
   }
 
   const handleVote = async (e:any) => {
@@ -89,9 +98,12 @@ const Ballot = (props: any) => {
         }
         else { voteDict[name as keyof typeof voteDict] = 1}
       }
+      setVoteObject(voteDict)
       const postData = {
-        userToken: userValues.email,
-        ballotId: router.query.ballotId,
+        timeDiff: diffTime(start, new Date()).toString(),
+        voteOrder: voteOrder,
+        styleGenerated: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+        ballotId: ballotValues.ballotId,
         ballot: voteDict,
       }
       const config = {
@@ -103,20 +115,26 @@ const Ballot = (props: any) => {
       res.then((data) => {
         if (data.status === 409) {
           setVoteError("You don't have permission to vote in this ballot")
+          return
+        }
+        if (data.status !== 200) {
+          setVoteError("Something happened when trying to submit this ballot, try again later")
+          return
         }
       })
+      const end = new Date()
       // @ts-ignore
       window.gtag("event", "vote", {
-        end: `${start.toUTCString()}`,
+        start: `${start.toUTCString()}`,
+        end: `${end.toUTCString()}`,
         randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-        uid: `${userValues.id}`
+        votePattern: `${voteOrder}`,
       })
       setVoteError("Ballot Submitted Successfully!")
       return
     }
     let valueSet = new Set()
     for (let i = 0; i < target.length - 1; i++) {
-      console.log(target.elements[i].name, target.elements[i].value)
       if (!target.elements[i].value) {
         setVoteError(`Missing Vote for candidate ${target.elements[i].name}`)
         return
@@ -125,15 +143,19 @@ const Ballot = (props: any) => {
       const name: string = target.elements[i].name
       voteDict[name as keyof typeof voteDict] = target.elements[i].value - 1
     }
-    if (router.query.votingMethod === "strictOrdering") {
+    if (ballotValues.votingMethod === "strictOrdering") {
       if (!isStrictCheck(valueSet)) {
         setVoteError("This is a strict order ballot, no two candidates can have the same preferences.")
         return
       }
     }
+
+    setVoteObject(voteDict)
     const postData = {
-      userToken: userValues.email,
-      ballotId: router.query.ballotId,
+      timeDiff: diffTime(start, new Date()).toString(),
+      voteOrder: voteOrder,
+      styleGenerated: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+      ballotId: ballotValues.ballotId,
       ballot: voteDict,
     }
     const config = {
@@ -147,35 +169,244 @@ const Ballot = (props: any) => {
         setVoteError("You don't have permission to vote in this ballot")
       }
       if (data.status === 405) {
-        setVoteError("You've already cast a vote in this ballot.")
-      } else {
+        setToUpdate(true)
+        return
+      } else if (data.status === 406) {
+        setDfaRequired(true)
+        return
+      } else if (data.status ===201) {
         setVoteError("Ballot Submitted Successfully!")
+        const end = new Date()
         // @ts-ignore
         window.gtag("event", "vote", {
-          end: `${start.toUTCString()}`,
+          start: `${start.toUTCString()}`,
+          end: `${end.toUTCString()}`,
           randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-          uid: `${userValues.id}`
+          votePattern: `${voteOrder}`,
         })
+      } else {
+        setVoteError("Expired token, refresh or login again")
       }
     })
   }
+
+  const handleDfaChange = (e:any) => {
+    e.preventDefault()
+    setDfaCode(e.target.value);
+  }
+
+  const handleDfaSubmit = async (e:any) => {
+    e.preventDefault()
+    setInvalidDfa(false)
+    const uriPath = "ballots/votes/secure"
+    const postData = {
+      timeDiff: diffTime(start, new Date()).toString(),
+      voteOrder: voteOrder,
+      styleGenerated: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+      dfaCode: dfaCode,
+      ballotId: ballotValues.ballotId,
+      ballot: voteObject,
+    }
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+    const res = postRecord(uriPath, postData, config)
+    res.then((data) => {
+      if (data.status === 200) {
+        const end = new Date()
+        // @ts-ignore
+        window.gtag("event", "vote", {
+          start: `${start.toUTCString()}`,
+          end: `${end.toUTCString()}`,
+          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+          votePattern: `${voteOrder}`,
+        })
+        setVoteError("Ballot Submitted Successfully!")
+        setDfaRequired(false)
+        return
+      } else if (data.status === 409) {
+        setVoteError("Something went wrong. Please try again later.")
+        setDfaRequired(false)
+        return
+      } else if (data.status === 403) {
+        setVoteError("Something went wrong. Please try again later.")
+        setDfaRequired(false)
+        return
+      } else if (data.status === 405) {
+        setVoteError("Any error occured, please try again")
+        setInvalidDfa(true)
+        return
+      }
+    })
+  }
+
+  const handleUpdateSubmit = async (e: any) => {
+    e.preventDefault()
+    console.log("func 3")
+    const uriPath = "ballots/update"
+    const postData = {
+      timeDiff: diffTime(start, new Date()).toString(),
+      voteOrder: voteOrder,
+      styleGenerated: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+      ballotId: ballotValues.ballotId,
+      ballot: voteObject,
+    }
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+    const res = putRecord(uriPath, postData, config)
+    res.then((data) => {
+      console.log(data)
+    if (data.status === 200) {
+        const end = new Date()
+        // @ts-ignore
+        window.gtag("event", "vote", {
+          start: `${start.toUTCString()}`,
+          end: `${end.toUTCString()}`,
+          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+          votePattern: `${voteOrder}`,
+        })
+        setVoteError("Ballot Submitted Successfully!")
+        setToUpdate(false)
+        return
+      } else if (data.status === 403) {
+        setVoteError("Something happened!")
+        setToUpdate(false)
+        return
+      } else if (data.status === 406) {
+        setVoteError("Double Factor Authentication required")
+        setDfaRequired(true)
+        return
+      } else if (data.status === 405) {
+        setVoteError("An Error occured, please try again")
+        setToUpdate(false)
+        return
+      }
+    })
+  }
+
+  const handleUpdateDfa = async (e: any) => {
+    e.preventDefault()
+    setInvalidDfa(false)
+    const uriPath = "ballots/update/secure"
+    const postData = {
+      timeDiff: diffTime(start, new Date()).toString(),
+      voteOrder: voteOrder,
+      styleGenerated: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+      dfaCode: dfaCode,
+      ballotId: ballotValues.ballotId,
+      ballot: voteObject,
+    }
+    const config = {
+      headers: {
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+    const res = postRecord(uriPath, postData, config)
+    res.then((data) => {
+    if (data.status === 200) {
+        const end = new Date()
+        // @ts-ignore
+        window.gtag("event", "vote", {
+          start: `${start.toUTCString()}`,
+          end: `${end.toUTCString()}`,
+          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+          votePattern: `${voteOrder}`,
+        })
+        setVoteError("Ballot Submitted Successfully!")
+        setToUpdate(false)
+        setDfaRequired(false)
+        return
+      } else if (data.status === 403) {
+        setVoteError("Something went wrong. Please try again later.")
+        setToUpdate(false)
+        setDfaRequired(false)
+        return
+      } else if (data.status === 405) {
+        setVoteError("Invalid Passcode Given.")
+        setInvalidDfa(true)
+        return
+      } else if (data.status === 409) {
+        setVoteError("Something went wrong, please try again later")
+        setToUpdate(false)
+        setDfaRequired(false)
+        return
+      }
+    })
+  }
+
   return (
     <div className="page-container vote__container">
       {loading ? <></> 
       :
       <>
-        <h1 className="vote__title">{router.query.name}</h1>
+        <h1 className="vote__title">{ballotValues.name}</h1>
         <form onSubmit={handleVote} className='form__vote'>
         <div className="vote__cand-list" style={styleRandomList}>
-        {candidates?.map((x) => {
+        {candidates?.map((x, idx) => {
           return (
             <div className="vote__cand-card" key={x} style={styleRandomCand}>
-              <h3 className="vote__cand-name" style={styleRandomName}>{x}</h3> {router.query.votingMethod == "approval" ? <input type="checkbox" name={x}/> : <input type="number" className="vote-rating" name={x} max={candidates.length} min="1"/>}
+              <h3 className="vote__cand-name" style={styleRandomName}>{x}</h3> 
+              {ballotValues.votingMethod == "approval" ? 
+                <input 
+                  type="checkbox" 
+                  name={x}
+                  onChange={(e) => {
+                    e.preventDefault()
+                    handleSelectValue(idx, e)
+                  }
+                  }
+                /> : 
+              <input 
+                type="number" 
+                className="vote-rating" 
+                name={x} 
+                max={candidates.length} 
+                min="1"
+                key={x}
+                onChange={(e) => {
+                  e.preventDefault()
+                  handleSelectValue(idx, e)
+                }}
+              />
+              }
             </div>
           )
         })}
+        {(dfaReuired && !toUpdate) && 
+          <div className="dfa-modal">
+            <DfaCard 
+              invalid={invalidDfa}
+              changeFunc={handleDfaChange} 
+              closeFunc={() => {setDfaRequired(false)}} 
+              submitFunc={handleDfaSubmit}
+            />
+          </div>
+        }
+        {(toUpdate && dfaReuired) && 
+          <div className="dfa-modal">
+            <DfaCard
+              invalid={invalidDfa}
+              changeFunc={handleDfaChange} 
+              closeFunc={() => {
+                setDfaRequired(false)
+                setToUpdate(false)
+              }} 
+              submitFunc={handleUpdateDfa}
+            />
+          </div>
+        }
         </div>
-        <input type="submit" value="Submit Vote!" className="vote__submit"/>
+        {(toUpdate && !dfaReuired) && 
+          <UpdateCard 
+            closeFunc={() => {setToUpdate(false)}}
+            submitFunc={handleUpdateSubmit}
+          />}
+        {!toUpdate && <input type="submit" value="Submit Vote!" className="vote__submit"/>}
         </form>
       </>
       }
