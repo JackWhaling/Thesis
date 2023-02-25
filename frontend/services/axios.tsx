@@ -2,11 +2,8 @@ import Axios from "axios";
 import https from "https"
 
 const API = Axios.create ({
-  baseURL: `https://13.54.67.138/v1/`,
+  baseURL: `https://propavote.com/v1/`,
   timeout: 30000,
-  httpsAgent: new https.Agent({
-    rejectUnauthorized: false
-  })
 })
 
 const exceptionHandler = (e: any) => {
@@ -84,7 +81,6 @@ export const postRecord = async (relativeUri: string, data: any, config: any = {
     message: "",
     data: "",
   };
-  console.log(relativeUri)
   try {
     let response = await API.post(relativeUri, data, config)
       .then((response) => {

@@ -45,10 +45,7 @@ const LoginForm = () => {
         const userToken = await user?.getIdToken()
         const userID = user?.uid;
         const uriPath = `users/${userID}`;
-        const agent = new https.Agent({  
-          rejectUnauthorized: false
-        });
-        const userDetails = await getRecord(uriPath, { httpsAgent: agent });
+        const userDetails = await getRecord(uriPath);
         const userData = userDetails.data;
         let ownedBallots: IBallots[] = []
         let userBallots: IBallots[] = []
