@@ -353,6 +353,7 @@ const Ballot = (props: any) => {
               <h3 className="vote__cand-name" style={styleRandomName}>{x}</h3> 
               {ballotValues.votingMethod == "approval" ? 
                 <input 
+                  className="vote__checkbox"
                   type="checkbox" 
                   name={x}
                   onChange={(e) => {

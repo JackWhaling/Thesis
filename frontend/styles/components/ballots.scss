@@ -7,10 +7,7 @@
     flex-direction: row;
     width: 50%;
     justify-content:space-between;
-    border-top: 1px solid black;
-    &:last-of-type {
-      border-bottom: 1px solid black;
-    }
+
     input {
       width: 50px;
     }
@@ -25,6 +22,12 @@
     align-self: center;
     width: 100%;
     margin: 0
+  }
+
+  &__checkbox {
+    accent-color: $constant-purple;
+    height: 32px;
+    align-self: center;
   }
 
   &__title {
