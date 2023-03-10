@@ -69,7 +69,6 @@ const Ballot = (props: any) => {
   }
 
   const handleSelectValue = (index: number, e: any) => {
-    e.preventDefault()
     if (!e.target.value) {
       return
     }
@@ -357,7 +356,6 @@ const Ballot = (props: any) => {
                   type="checkbox" 
                   name={x}
                   onChange={(e) => {
-                    e.preventDefault()
                     handleSelectValue(idx, e)
                   }
                   }
