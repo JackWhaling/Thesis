@@ -8,6 +8,7 @@ import { userContext, UserContextType } from "../context/userState";
 import { Modal } from "react-bootstrap";
 import { getRecord } from "../services/axios";
 import axios from "axios";
+import { ballotContext, BallotContextType } from "../context/ballotState";
 
 const DEFAULT_VOTE_STATE = {
   ballotId: "",
@@ -18,6 +19,7 @@ const Home: NextPage = () => {
   const { userValues, setUserValues } = useContext(
     userContext
   ) as UserContextType;
+  const { ballotValues, setBallotValues } = useContext(ballotContext) as BallotContextType;
   const router = useRouter();
   const [voteModal, setVoteModal] = useState<boolean>(false)
   const [voteState, setVoteState] = useState<any>(DEFAULT_VOTE_STATE)
@@ -57,20 +59,26 @@ const Home: NextPage = () => {
       return
     }
     setIncorrect(false)
-    hideVoteModal();
-    const passQuery = {
+    setBallotValues({
       name: res.data.ballotName,
       candidates: res.data.candidates,
       committeeSize: res.data.committeeSize,
       elected: res.data.elected,
+      // @ts-ignore
       liveResults: res.data.liveResults,
+      // @ts-ignore
       owner: res.data.owner,
       votingMethod: res.data.votingMethod,
       closed: res.data.closed,
       ballotId: voteState.ballotId,
-    }
-    router.push({pathname: `/ballot/${voteState.ballotId}`, query: passQuery}, `/ballot/${voteState.ballotId}`)
+    })
   }
+
+  useEffect(() => {
+    if (ballotValues.ballotId != "") {
+      router.push(`/ballot/${ballotValues.ballotId}`)
+    }
+  }, [ballotValues])
 
   useEffect(() => {
     console.log(userValues)
