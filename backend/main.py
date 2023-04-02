@@ -99,7 +99,6 @@ def getPollDetails(id, request: Request):
 
 @app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)
 def getBallotRes(id, user=Depends(get_user_token)):
-    print(user)
     return getBallotResults(supabase, id, user)
 
 @app.get("/v1/results/personal/{id}", status_code=status.HTTP_200_OK)
