@@ -25,7 +25,6 @@ class BallotCreate(BaseModel):
         use_enum_values = True
 
 class BallotBaseInfo(BaseModel):
-    userToken: str
     ballotId: str
 
 class BallotExtraInfo(BaseModel):

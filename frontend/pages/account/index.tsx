@@ -30,6 +30,7 @@ const Account: NextPage = () => {
   const { ballotValues, setBallotValues } = useContext(ballotContext) as BallotContextType;
   const [showIncorrect, setIncorrect] = useState<boolean>(false)
   const [voteModal, setVoteModal] = useState<boolean>(false)
+  const [resultModal, setResultModal] = useState<boolean>(false)
   const [addModal, setAddModal] = useState<boolean>(false)
   const [passcode, setPasscode] = useState<string>("")
   const [selectedAddBallot, setSelectedBallot] = useState<IBallots | null>(null)
@@ -60,6 +61,16 @@ const Account: NextPage = () => {
   const showVoteModal = (id: string) => {
     setVoteModal(true)
     setSelectedBallotId(id)
+  }
+
+  const showResultModal = (id: string) => {
+    setResultModal(true)
+    setSelectedBallotId(id)
+  }
+
+  const hideResultModal = () => {
+    setResultModal(false)
+    setSelectedBallotId("")
   }
 
   const hideVoteModal = () => {
@@ -209,10 +220,9 @@ const Account: NextPage = () => {
     closeAddModal()
   }
 
-  const closeBallot = async (ballotId: string, userId: any) => {
+  const closeBallot = async (ballotId: string) => {
     const putUrl = 'polls/close'
     const body = {
-      userToken: userValues.postgresId,
       ballotId: ballotId,
     }
     const config = {
@@ -242,7 +252,35 @@ const Account: NextPage = () => {
     }
   }
 
-  const getResults = async (ballotId: string, userId: any) => {
+  const handleGotoResultSpecific = async (ballotId: string) => {
+    const getUrl = `results/personal/${ballotId}`
+    const config = {
+      headers: {
+        ContentType: "application/json",
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
+      }
+    }
+    const res = await getRecord(getUrl, config)
+
+    if (res.status == 200) {
+      const passQuery = {
+        results: res.data.results,
+        ballotId: ballotId,
+        totalWeight: res.data.totalWeight,
+        personalWeight: res.data.personalWeight
+      }
+      router.push({pathname: `/results`, query: passQuery}, `/results`)
+      return
+    } if (res.status == 406) {
+      alert('not enough voters found to analyse results')
+      return
+    } else {
+      alert('Unable to get results at this time')
+      return
+    }
+  }
+
+  const getResults = async (ballotId: string) => {
     const getUrl = `results/ballot/${ballotId}`
     const config = {
       headers: {
@@ -295,11 +333,16 @@ const Account: NextPage = () => {
         {closedBallots.length === 0 ? (
           <h4 className="ballot-list__none">You have no closed ballots</h4>
         ) : (
-          closedBallots.map((ballot) => (
-            <div className="ballot__card" key={ballot.id} onClick={(e) => showVoteModal(ballot.id)}>
-              <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
+          <div className="open-ballot-container">
+          <h4>Your Closed Ballots:</h4>
+            <div className="card-container">
+            {closedBallots.map((ballot) => (
+              <div className="ballot__card" key={ballot.id} onClick={(e) => showResultModal(ballot.id)}>
+                <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
+              </div>
+            ))}
             </div>
-          ))
+          </div>
         )}
       </div>
       <div className="ballots-lists__owned">
@@ -312,13 +355,13 @@ const Account: NextPage = () => {
             <>
               {ballot.live && <div className="get-results" onClick={(e) => {
                 e.preventDefault()
-                getResults(ballot.id, userValues.postgresId)
+                getResults(ballot.id)
               }}>
                 Get Results
               </div>}
               <div className="close-section" onClick={(e) => {
                 e.preventDefault()
-                closeBallot(ballot.id, userValues.postgresId)}}
+                closeBallot(ballot.id)}}
               >
                 Close
               </div>
@@ -333,7 +376,7 @@ const Account: NextPage = () => {
             : 
             <div className="get-results" onClick={(e) => {
               e.preventDefault()
-              getResults(ballot.id, userValues.postgresId)
+              getResults(ballot.id)
             }}>
               Get Results
             </div>
@@ -372,6 +415,39 @@ const Account: NextPage = () => {
           <input type="submit" value="Vote!" onClick={(e) => {
               e.preventDefault()
               handleGotoVote(selectedBallotId, passcode)
+            }}
+          />
+        </Modal.Footer>
+      </Modal>
+            <Modal show={resultModal} onHide={hideResultModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Enter ballot passcode for ballot id: {selectedBallotId}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div
+            className="input"
+          >
+            <input
+              className="input__field"
+              name="ballotPass"
+              type="text"
+              placeholder="Ballot Passcode"
+              onChange={(e) => {
+                setPasscode(e.target.value);
+              }}
+              value={passcode}
+            />
+            <div className="cut"></div>
+            <label className="input__label">Ballot Passcode</label>
+          </div>
+          {showIncorrect && <label>Incorrect Password or Id</label>}
+        </Modal.Body>
+        <Modal.Footer>
+          <input type="submit" value="Get Results!" onClick={(e) => {
+              e.preventDefault()
+              handleGotoResultSpecific(selectedBallotId, passcode)
             }}
           />
         </Modal.Footer>

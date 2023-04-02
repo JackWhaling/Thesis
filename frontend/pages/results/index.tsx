@@ -30,6 +30,8 @@ const BallotResults = (props: any) => {
   const [ballotInfo, setBallotInfo] = useState<IBallotInfo | any>(null);
   const [ballotId, setBallotId] = useState(null)
   const [winners, setWinners] = useState([])
+  const [totalWeight, setTotalWeight] = useState(null)
+  const [personalWeight, setPersonalWeight] = useState(null)
   const [show, setShow] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,6 +41,10 @@ const BallotResults = (props: any) => {
     setBallotId(router.query?.ballotId)
     //@ts-ignore
     setWinners(router.query.results)
+    //@ts-ignore
+    setTotalWeight(router.query?.totalWeight)
+    //@ts-ignore
+    setPersonalWeight(router.query?.personalWeight)
   }, [router.query])
 
   const handleClose = () => {

@@ -1,8 +1,12 @@
 import Axios from "axios";
 import https from "https"
 
+
+// TO RUN LOCALLY change baseUrl to local endpoint eg http://localhost:8000/v1
+//NOTE production uses HTTPS, change to http when not in production.
+
 const API = Axios.create ({
-  baseURL: `https://propavote.com/v1/`,
+  baseURL: `http://localhost:8000/v1/`,
   timeout: 30000,
 })
 

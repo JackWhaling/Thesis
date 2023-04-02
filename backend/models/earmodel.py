@@ -1,6 +1,7 @@
 from typing import List
 from collections import defaultdict
 from math import floor
+import numpy as np
 
 class EarProfile:
     def __init__(self, cand_array, committee_size):
@@ -8,7 +9,7 @@ class EarProfile:
         self.electedSet = []
         self.candidate_point_dict = {}
         self.committee_size = int(committee_size)
-        self.voters = []
+        self.voters: list(EarVoter) = []
         for candidate in cand_array:
             self.candidate_point_dict.setdefault(0, candidate)
 
@@ -19,6 +20,9 @@ class EarProfile:
     @property
     def winners(self):
         return self.electedSet
+
+    def set_specific_ballot(self, ballot):
+        self.specificBallot = ballot
 
     def add_voter(self, voter):
         if isinstance(voter, EarVoter):
@@ -47,9 +51,10 @@ class EarProfile:
         k = self.committee_size
         quota: int = (numVoters/(k+1)) + ((1/(numCands+1))*(floor(numVoters/(k + 1)) + 1 - (numVoters/(k + 1))))
         electedCommittee = []
-        print(quota)
         currentCands = defaultdict(float)
         currentCandsSupporters = defaultdict(list)
+        totalWeight = 0 
+        specificWeight = 0
         for candidate in self.candidates:
             currentCands[candidate] = 0
             currentCandsSupporters[candidate] = []
@@ -62,6 +67,9 @@ class EarProfile:
                         break
                     currentCandsSupporters[cand].append(voter)
                     currentCands[cand] += voter.weight
+                    totalWeight += voter.weight
+                    if (voter.specialVoter):
+                        specificWeight += voter.weight
             candidatesWithQuota = self.checkCandidateQuota(quota=quota, cand_pont_dict=currentCands)
             if (len(candidatesWithQuota) + len(electedCommittee) <= k):
                 for c in candidatesWithQuota:
@@ -88,7 +96,7 @@ class EarProfile:
             if (currJ == self.num_cands):
                 print(electedCommittee)
                 raise Exception("Either candidates missing in ballots or too little voters")
-        return(electedCommittee)
+        return electedCommittee, totalWeight, specificWeight
 
 
     """
@@ -116,7 +124,8 @@ class EarProfile:
         return list(maximalDict.keys())
 
 class EarVoter:
-   def __init__(self, voteArray, weight=1):
+   def __init__(self, voteArray, weight=1, special = False):
+        self.specialVoter = special
         self.voteArray = voteArray
         self.weight = weight
 

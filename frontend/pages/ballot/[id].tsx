@@ -166,6 +166,7 @@ const Ballot = (props: any) => {
     res.then((data) => {
       if (data.status === 403) {
         setVoteError("You don't have permission to vote in this ballot")
+        return
       }
       if (data.status === 405) {
         setToUpdate(true)
@@ -173,7 +174,7 @@ const Ballot = (props: any) => {
       } else if (data.status === 406) {
         setDfaRequired(true)
         return
-      } else if (data.status ===201) {
+      } else if (data.status === 201 || data.staus === 200) {
         setVoteError("Ballot Submitted Successfully!")
         const end = new Date()
         // @ts-ignore
@@ -183,8 +184,9 @@ const Ballot = (props: any) => {
           randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
           votePattern: `${voteOrder}`,
         })
+        return
       } else {
-        setVoteError("Expired token, refresh or login again")
+        setVoteError("An error occured. Please try submitting again")
       }
     })
   }
@@ -243,7 +245,6 @@ const Ballot = (props: any) => {
 
   const handleUpdateSubmit = async (e: any) => {
     e.preventDefault()
-    console.log("func 3")
     const uriPath = "ballots/update"
     const postData = {
       timeDiff: diffTime(start, new Date()).toString(),

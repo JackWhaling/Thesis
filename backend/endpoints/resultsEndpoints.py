@@ -1,3 +1,4 @@
+from operator import itemgetter
 from random import randint
 from fastapi import status, HTTPException
 from fastapi.responses import JSONResponse
@@ -24,6 +25,44 @@ def stripReg(string, char='', reg=r'\d+:\s*'):
     regex_sub = re.sub(reg, char, string)
     return (regex_sub)
 
+def getResultsSpecificCall(superdb: Client, ballotId, userFbId):
+    ballotInfoData = superdb.table("ballot").select("ballot_owner, voting_rule, committee_size, closed").eq("id", ballotId).execute()
+    print("hello")
+    if (len(ballotInfoData.data) <= 0):
+        return toJsonResponse(404, {})
+    ballotObject = ballotInfoData.data[0]
+    (ballotOwner, rule, size, closed) = itemgetter("ballot_owner", "voting_rule", "committee_size", "closed")(ballotObject)
+    if (not closed):
+        return toJsonResponse(401, {})
+    voteInfoData = superdb.table("vote").select("vote_object_string, voter_id").eq("ballot_id", ballotId).execute()
+    if (len(voteInfoData.data) <= 2):
+        return toJsonResponse(402, {})
+    votes = voteInfoData.data
+    listOfVotes = []
+    specialBallot = None
+    for row in votes:
+        (voteString, voterId) = itemgetter("vote_object_string", "voter_id")(row)
+        if (voteString == None or voteString == "" or len(voteString) <= 2):
+            continue
+        listOfVotes.append(json.loads(voteString))
+        if (userFbId == voterId):
+            specialBallot = json.loads(voteString)
+    if (len(listOfVotes) < 2):
+        return toJsonResponse(406, {})
+    if (specialBallot == None):
+        return toJsonResponse(408, {})
+    res, totalWeight, specificWeight = getResultsSpecific(listOfVotes, rule, size, specialBallot)
+    return toJsonResponse(200, {"results": res, "totalWeight": totalWeight, "personalWeight": specificWeight})
+
+
+def getResultsSpecific(listOfVotes, rule, size, specialBallot):
+    if (rule == "EAR"):
+        newSpecial = [[] for _ in range(len(specialBallot))]
+        for candidate in specialBallot:
+            newSpecial[specialBallot[candidate]].append(candidate)
+        profile = convertToEarProfile(listOfVotes, int(size), newSpecial)
+        results, totalWeight, specificWeight = profile.earResult()
+        return results, totalWeight, specificWeight
 
 def getResultsRaw(data: models.BallotRaw):
     splitData = data.rawData.splitlines()
@@ -73,11 +112,8 @@ def getResultsRaw(data: models.BallotRaw):
         listOfVoters.extend([dict(newSetVoter)] * int(numVoters))
     ### list of dictionary of voters we can send to get results
     results = getResults(listOfVoters, data.voteRule, data.numWinners)
-    print(candidateNames)
-    print(results)
     nameResults = []
     for result in results:
-        print(result)
         nameResults.append(candidateNames[int(result) - 1])
     responseBody = {
         "results": nameResults,
@@ -92,7 +128,7 @@ def getResults(listOfVotes, rule, numWinners):
     convertMethod = RULE_MAP[rule]
     if (convertMethod == "earProfile"):
         profile = convertToEarProfile(listOfVotes, int(numWinners))
-        results = profile.earResult()
+        results, _, _ = profile.earResult()
         return results
     elif (convertMethod == "abcProfile"):
         profile = convertToAbcProfile(listOfVotes, int(numWinners))
@@ -114,34 +150,31 @@ def getResults(listOfVotes, rule, numWinners):
             electedCommittee.append(str(winner))
         return electedCommittee
     else:
-        print("wrong voting method")
+        toJsonResponse(500, {})
     return toJsonResponse(200, {})
 
 def getBallotResults(superdb: Client, ballotId, userFbId):
+    ballotInfoData = superdb.table("ballot").select("ballot_owner, voting_rule, committee_size, live_results, closed").eq("id", ballotId).execute()
+    if (len(ballotInfoData.data) <= 0):
+        return toJsonResponse(404, {})
+    ballotObject = ballotInfoData.data[0]
+    (ballotOwner, rule, size, live, closed) = itemgetter("ballot_owner", "voting_rule", "committee_size", "live_results", "closed")(ballotObject)
+    if (not closed and not live):
+        return toJsonResponse(401, {})
+    if (ballotOwner != userFbId):
+        return toJsonResponse(403, {})
     voteInfoData = superdb.table("vote").select("vote_object_string").eq("ballot_id", ballotId).execute()
-    ballotInfoData = superdb.table("ballot").select("ballot_owner, voting_rule, committee_size, live_results, closed").eq("id", ballotId)
-    secondSqlQueryString = "SELECT vote_object_string FROM voteschema.vote WHERE ballot_id = %s"
-    firstSqlQueryString = "SELECT ballot_owner, voting_rule, committee_size, live_results, closed FROM voteschema.ballot WHERE id = %s"
-    cur = conn.cursor()
-    try:
-        cur.execute(firstSqlQueryString, (ballotId,))
-        (ballotOwner, voteRule, commSize, live, closed) = cur.fetchone()
-        if (not closed and not live):
-            return toJsonResponse(401, {})
-        cur.execute(secondSqlQueryString, (ballotId,))
-        record = cur.fetchall()
-        listOfVotes = []
-        for row in record:
-            (voteString,) =  row
-            if (voteString == None):
-                continue
-            listOfVotes.append(json.loads(voteString))
-        if (len(listOfVotes) < 2):
-            return toJsonResponse(406, {})
-        res = getResults(listOfVotes, voteRule, commSize)
-
-        return toJsonResponse(200, {"results": res})
-    except Exception as error:
-        print(error)
-        cur.close()
-        return toJsonResponse(409, {})
+    if (len(voteInfoData.data) <= 2):
+        return toJsonResponse(402, {})
+    votes = voteInfoData.data
+    listOfVotes = []
+    print()
+    for row in votes:
+        (voteString) = itemgetter("vote_object_string")(row)
+        if (voteString == None or voteString == "" or len(voteString) <= 2):
+            continue
+        listOfVotes.append(json.loads(voteString))
+    if (len(listOfVotes) < 2):
+        return toJsonResponse(406, {})
+    res = getResults(listOfVotes, rule, size)
+    return toJsonResponse(200, {"results": res})

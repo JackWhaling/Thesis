@@ -16,7 +16,7 @@ from datetime import date, datetime
 import os
 from endpoints import getResultsRaw, createUserEntry, createBallot, getBallotInfo, \
     updateVoteSecure, getUserEntry, castVote, getBallotResults, addVoterToBallot, closeBallot, \
-    updateVote, addVoteSecure, addVoterToSecureBallot
+    updateVote, addVoteSecure, addVoterToSecureBallot, getResultsSpecific, getResultsSpecificCall
 
 load_dotenv()
 
@@ -42,7 +42,7 @@ def get_user_token(res: Response, credential: HTTPAuthorizationCredentials=Depen
         print(credential)
         decoded_token = auth.verify_id_token(credential.credentials)
     except Exception as err:
-        print("other")
+        print("error occured")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication from Firebase. {err}",
@@ -98,8 +98,13 @@ def getPollDetails(id, request: Request):
     return getBallotInfo(supabase, id, headerPass)
 
 @app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)
-def getBallotRes(id,):
-    return getBallotResults(supabase, id)
+def getBallotRes(id, user=Depends(get_user_token)):
+    print(user)
+    return getBallotResults(supabase, id, user)
+
+@app.get("/v1/results/personal/{id}", status_code=status.HTTP_200_OK)
+def getPersonalResults(id, user=Depends(get_user_token)):
+    return getResultsSpecificCall(supabase, id, user)
 
 @app.put("/v1/polls/close", status_code=status.HTTP_201_CREATED)
 def closePoll(BallotInfo: models.BallotBaseInfo, user = Depends(get_user_token)):
