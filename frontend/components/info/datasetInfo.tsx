@@ -108,7 +108,7 @@ const DatasetInfo = () => {
             </tbody>
         </table>
       </div>
-      <div className="dataset-info-card__subnote"><strong>Note: </strong> Don't include the line numbers as specified in the example above on the left-hand side of the table ordered 1-19.</div>
+      <div className="dataset-info-card__subnote"><strong>Note: </strong> {"Don't"} include the line numbers as specified in the example above on the left-hand side of the table ordered 1-19.</div>
       </div>
       <div className="dataset-info-card__note"><p><strong>ALSO</strong> you can now inspect the weight of a single voter in a voting group by appending an astrix {"(*)"} as the end of a voting group.
         You will be only able to inspect one group at a time.
