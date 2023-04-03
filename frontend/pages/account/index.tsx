@@ -263,11 +263,12 @@ const Account: NextPage = () => {
     const res = await getRecord(getUrl, config)
 
     if (res.status == 200) {
+
       const passQuery = {
         results: res.data.results,
         ballotId: ballotId,
-        totalWeight: res.data.totalWeight,
-        personalWeight: res.data.personalWeight
+        totalWeight: res.data?.totalWeight,
+        personalWeight: res.data?.personalWeight
       }
       router.push({pathname: `/results`, query: passQuery}, `/results`)
       return
@@ -337,7 +338,7 @@ const Account: NextPage = () => {
           <h4>Your Closed Ballots:</h4>
             <div className="card-container">
             {closedBallots.map((ballot) => (
-              <div className="ballot__card" key={ballot.id} onClick={(e) => showResultModal(ballot.id)}>
+              <div className="ballot__card" key={ballot.id} onClick={(e) => handleGotoResultSpecific(ballot.id)}>
                 <BallotCard name={ballot.name} id={ballot.id} key={ballot.id} />
               </div>
             ))}
@@ -447,7 +448,7 @@ const Account: NextPage = () => {
         <Modal.Footer>
           <input type="submit" value="Get Results!" onClick={(e) => {
               e.preventDefault()
-              handleGotoResultSpecific(selectedBallotId, passcode)
+              handleGotoResultSpecific(selectedBallotId)
             }}
           />
         </Modal.Footer>

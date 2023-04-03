@@ -33,9 +33,7 @@ def convertToAbcProfile(ballots: List[Dict[str, int]], numCandidates: int):
   candidateNameList = []
   for candidate in ballots[0]:
     candidateNameList.append(candidate)
-  print(candidateNameList)
   profile = Profile(len(candidateNameList), candidateNameList)
-  print(profile.cand_names)
   for ballot in ballots:
     approvedCandidates = []
     for candidate in ballot:
@@ -48,15 +46,13 @@ def convertToAbcProfile(ballots: List[Dict[str, int]], numCandidates: int):
 def convertToEarProfile(ballots: List[Dict[str, int]], numCandidates: int, specialBallot = None):
   candidateNameList = []
   specialVoterMade = False
-  print(specialBallot)
   for candidate in ballots[0]:
     candidateNameList.append(candidate)
   profile = EarProfile(cand_array=candidateNameList, committee_size=numCandidates)
   for ballot in ballots:
-    newBase = [[] for _ in range(len(ballots[0]))]
+    newBase = [[] for _ in range(len(candidateNameList))]
     for candidate in ballot:
       newBase[ballot[candidate]].append(candidate)
-    print(newBase)
     if (specialBallot == newBase and not specialVoterMade):
       voter = EarVoter(voteArray=newBase, special=True)
       specialVoterMade = True

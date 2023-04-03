@@ -39,7 +39,6 @@ def get_user_token(res: Response, credential: HTTPAuthorizationCredentials=Depen
             headers={'WWW-Authenticate': 'Bearer realm="auth_required"'},
         )
     try:
-        print(credential)
         decoded_token = auth.verify_id_token(credential.credentials)
     except Exception as err:
         print("error occured")

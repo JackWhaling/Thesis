@@ -89,7 +89,6 @@ def castVote(superdb: Client, voteUpdate: BallotVote, user):
   if (len(voteCheckData.data) <= 0):
     return toJsonResponse(403, {"error": "you don't have permission to vote"})
   (voteString, passcode) = itemgetter("vote_object_string", "passcode")(voteCheckData.data[0])
-  print("votestring:", voteString, ":")
   voteString = voteString.strip()
   if (len(voteString) > 1):
     return toJsonResponse(405, {"error": "voted"})

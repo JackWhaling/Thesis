@@ -1,11 +1,21 @@
 @import '../common/variables';
 
 .election-results {
+
+  &__special-container {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+  }
+
   &__container {
     background: $constant-white;
     margin: 2rem;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 
     h5 {
       text-decoration: underline;
@@ -51,6 +61,7 @@
     }
 
     .election-results {
+
       &__info {
         padding: 8px;
         display: flex;
@@ -85,7 +96,37 @@
     }
   }
 
+  &__sides {
+    display: flex;
+    flex-direction: row;
+  }
+
   &__left-side {
     width: 50%;
+  }
+}
+
+.results {
+  &__chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 440px;
+
+    @media screen and (max-width: 701px) {
+      width: 300px;
+    }
+
+    @media screen and (max-width: 400px) {
+      width: 200px;
+    }
+
+  }
+
+  &__special-container {
+    margin: 8px;
+    text-align: center;
   }
 }

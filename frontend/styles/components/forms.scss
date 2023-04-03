@@ -73,6 +73,8 @@ input[type=number] {
 }
 
 .input-textarea {
+  display: flex;
+  flex-direction: column;
   min-height: 50px;
   height: fit-content;
 }

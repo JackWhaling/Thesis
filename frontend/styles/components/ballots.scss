@@ -72,6 +72,10 @@
       padding: 14px;
       border-radius: 8px;
       cursor: pointer;
+
+      &:hover {
+        background: $constant-green-fader;
+      }
     }
   }
 
@@ -81,12 +85,16 @@
     flex-wrap: wrap;
 
     .ballot__card {
-      background: $constant-red;
+      background: $constant-purple;
       margin: 8px;
       width: auto;
       padding: 14px;
       border-radius: 8px;
       cursor: pointer;
+
+      &:hover {
+        background: $constant-purple-fader;
+      }
     }
   }
 }
@@ -135,7 +143,7 @@
   }
 
   &__closed {
-    background: $constant-yellow;
+    background: $constant-red;
   }
 
   &__owned-card {

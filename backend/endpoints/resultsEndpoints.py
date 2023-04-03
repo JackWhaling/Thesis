@@ -27,13 +27,14 @@ def stripReg(string, char='', reg=r'\d+:\s*'):
 
 def getResultsSpecificCall(superdb: Client, ballotId, userFbId):
     ballotInfoData = superdb.table("ballot").select("ballot_owner, voting_rule, committee_size, closed").eq("id", ballotId).execute()
-    print("hello")
     if (len(ballotInfoData.data) <= 0):
         return toJsonResponse(404, {})
     ballotObject = ballotInfoData.data[0]
     (ballotOwner, rule, size, closed) = itemgetter("ballot_owner", "voting_rule", "committee_size", "closed")(ballotObject)
     if (not closed):
         return toJsonResponse(401, {})
+    if (rule != "EAR" and rule != "pav" and rule !="stv"):
+        return getBallotResults(superdb, ballotId, userFbId) 
     voteInfoData = superdb.table("vote").select("vote_object_string, voter_id").eq("ballot_id", ballotId).execute()
     if (len(voteInfoData.data) <= 2):
         return toJsonResponse(402, {})
@@ -51,8 +52,8 @@ def getResultsSpecificCall(superdb: Client, ballotId, userFbId):
         return toJsonResponse(406, {})
     if (specialBallot == None):
         return toJsonResponse(408, {})
-    res, totalWeight, specificWeight = getResultsSpecific(listOfVotes, rule, size, specialBallot)
-    return toJsonResponse(200, {"results": res, "totalWeight": totalWeight, "personalWeight": specificWeight})
+    res, totalWeight, specificWeight, numVoters = getResultsSpecific(listOfVotes, rule, size, specialBallot)
+    return toJsonResponse(200, {"results": res, "totalWeight": totalWeight, "personalWeight": specificWeight, "numVoters": numVoters})
 
 
 def getResultsSpecific(listOfVotes, rule, size, specialBallot):
@@ -62,7 +63,22 @@ def getResultsSpecific(listOfVotes, rule, size, specialBallot):
             newSpecial[specialBallot[candidate]].append(candidate)
         profile = convertToEarProfile(listOfVotes, int(size), newSpecial)
         results, totalWeight, specificWeight = profile.earResult()
-        return results, totalWeight, specificWeight
+        return results, totalWeight, specificWeight, len(profile.voters)
+    if(rule == "stv"):
+        newSpecial = [[] for _ in range(len(specialBallot))]
+        for candidate in specialBallot:
+            newSpecial[specialBallot[candidate]].append(candidate)
+        profile = convertToEarProfile(listOfVotes, int(size), newSpecial)
+        results, totalWeight, specificWeight = profile.stvResult()
+        return results, totalWeight, specificWeight, len(profile.voters)
+    if (rule == "pav"):        
+        newSpecial = [[] for _ in range(len(specialBallot))]
+        for candidate in specialBallot:
+            newSpecial[specialBallot[candidate]].append(candidate)
+        profile = convertToEarProfile(listOfVotes, int(size), newSpecial)
+        results, totalWeight, specificWeight = profile.pavResult()
+        return results, totalWeight, specificWeight, len(profile.voters)
+    return [], 0, 0
 
 def getResultsRaw(data: models.BallotRaw):
     splitData = data.rawData.splitlines()
@@ -72,12 +88,14 @@ def getResultsRaw(data: models.BallotRaw):
     # {} is an empty set in preference, k occurs when only one option is selected (not encased by a braces), and {m..n} are
     # a set of preferences with the same order. Within this set they are seperated by commas.
     # each preference order is split by a comma
-    uniqueVoters = len(splitData)
+    uniqueVoters = 0
     listOfVoters = []
     candidates = []
     candidateNames = []
     altCand = 1
+    specialVoterGroup = None
     for i in splitData:
+        noted = False
         if (re.match(r'# ALTERNATIVE NAME \d+: .*', i)):
             candidates.append(str(altCand))
             candidateName = re.search(r'# ALTERNATIVE NAME \d+: .*', i).group()
@@ -87,6 +105,10 @@ def getResultsRaw(data: models.BallotRaw):
             continue
         elif (re.match(r'#.*', i)):
             continue
+        uniqueVoters += 1
+        if re.match(r'.*\*$', i):
+            i = i.replace("*","")
+            noted = True
         numVoters = re.search(r'\d+', i).group()
         totalVoters += int(numVoters)
         strippedVoters = stripReg(i)
@@ -110,9 +132,26 @@ def getResultsRaw(data: models.BallotRaw):
             if cand not in newSetVoter:
                 newSetVoter[cand] = level
         listOfVoters.extend([dict(newSetVoter)] * int(numVoters))
+        if noted:
+            specialVoterGroup = newSetVoter
     ### list of dictionary of voters we can send to get results
-    results = getResults(listOfVoters, data.voteRule, data.numWinners)
+    if (specialVoterGroup == None):
+        results = getResults(listOfVoters, data.voteRule, data.numWinners)
+        nameResults = []
+        for result in results:
+            nameResults.append(candidateNames[int(result) - 1])
+        responseBody = {
+            "results": nameResults,
+            "numVoters": totalVoters,
+            "numCandidates": len(candidates),
+            "uniqueVotes": uniqueVoters,
+            "special": 0,
+        }
+        return toJsonResponse(200, responseBody)
+    results, totalWeight, specificWeight, _ = getResultsSpecific(listOfVoters, data.voteRule, data.numWinners, specialVoterGroup)
     nameResults = []
+    if (results == []):
+        return toJsonResponse(404, {})
     for result in results:
         nameResults.append(candidateNames[int(result) - 1])
     responseBody = {
@@ -120,6 +159,7 @@ def getResultsRaw(data: models.BallotRaw):
         "numVoters": totalVoters,
         "numCandidates": len(candidates),
         "uniqueVotes": uniqueVoters,
+        "special": {"specificWeight": specificWeight, "totalWeight": totalWeight},
     }
     return toJsonResponse(200, responseBody)
 
@@ -168,7 +208,6 @@ def getBallotResults(superdb: Client, ballotId, userFbId):
         return toJsonResponse(402, {})
     votes = voteInfoData.data
     listOfVotes = []
-    print()
     for row in votes:
         (voteString) = itemgetter("vote_object_string")(row)
         if (voteString == None or voteString == "" or len(voteString) <= 2):

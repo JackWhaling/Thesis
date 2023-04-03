@@ -14,7 +14,6 @@ from operator import itemgetter
 def createUserEntry(superdb: Client, userInfo: CreateVoter):
   userEmail = userInfo.email
   userId = userInfo.userId
-  print("helo")
   data = superdb.table("voter").insert({"email": userEmail, "fb_key": userId}).execute()
   if (len(data.data) > 0):
     return toJsonResponse(201, {"userId": data.data[0]["id"]})
@@ -24,7 +23,6 @@ def createUserEntry(superdb: Client, userInfo: CreateVoter):
 def getUserEntry(superdb: Client, id):
   userBallots = []
   ownedBallots = []
-  print("here")
   userBaseData = superdb.table("voter").select("email, id").eq("fb_key", id).execute()
   if (len(userBaseData.data) <= 0):
     return toJsonResponse(409, {})

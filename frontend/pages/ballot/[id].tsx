@@ -120,17 +120,17 @@ const Ballot = (props: any) => {
           setVoteError("Something happened when trying to submit this ballot, try again later")
           return
         }
+        const end = new Date()
+        // @ts-ignore
+        window.gtag("event", "vote", {
+          start: `${start.toUTCString()}`,
+          end: `${end.toUTCString()}`,
+          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+          votePattern: `${voteOrder}`,
+        })
+        setVoteError("Ballot Submitted Successfully!")
+        return
       })
-      const end = new Date()
-      // @ts-ignore
-      window.gtag("event", "vote", {
-        start: `${start.toUTCString()}`,
-        end: `${end.toUTCString()}`,
-        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-        votePattern: `${voteOrder}`,
-      })
-      setVoteError("Ballot Submitted Successfully!")
-      return
     }
     let valueSet = new Set()
     for (let i = 0; i < target.length - 1; i++) {
@@ -174,7 +174,7 @@ const Ballot = (props: any) => {
       } else if (data.status === 406) {
         setDfaRequired(true)
         return
-      } else if (data.status === 201 || data.staus === 200) {
+      } else if (data.staus === 200) {
         setVoteError("Ballot Submitted Successfully!")
         const end = new Date()
         // @ts-ignore
@@ -187,6 +187,7 @@ const Ballot = (props: any) => {
         return
       } else {
         setVoteError("An error occured. Please try submitting again")
+        return
       }
     })
   }
