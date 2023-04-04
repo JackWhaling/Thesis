@@ -175,7 +175,7 @@ const Ballot = (props: any) => {
         setVoteError("You don't have permission to vote in this ballot")
         return
       }
-      if (data.status === 405) {
+      else if (data.status === 405) {
         setToUpdate(true)
         return
       } else if (data.status === 406) {
@@ -193,7 +193,6 @@ const Ballot = (props: any) => {
         })
         return
       } else {
-        setVoteError("An error occured. Please try submitting again")
         return
       }
     })
