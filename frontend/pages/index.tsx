@@ -56,7 +56,7 @@ const Home: NextPage = () => {
     }
     const uriPath = `polls/details/${voteState.ballotId}`
     const res = await getRecord(uriPath, config);
-    if (res.status == 408) {
+    if (res.status == 401 || res.status == 408) {
       setNotAllowed(true)
       return
     }
