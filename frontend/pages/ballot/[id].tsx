@@ -411,6 +411,13 @@ const Ballot = (props: any) => {
       </>
       }
       {voteError && <p>{voteError}</p>}
+      {(ballotValues.votingMethod === "strictOrdering") && <div>This ballot is a strict ordered ballot. You must rank each candidate from 1 to {candidates.length}.</div>}
+      {(ballotValues.votingMethod === "weakOrdering") && 
+        <div>
+          This ballot is a weak ordered ballot. You must rank each candidate starting from 1 to 2 and so on. Candidates who you indifferent can be ranked the same.
+          An example of an election with 5 candidates could mean you rank 2 candidates 1, 1 candidate 2 and the remaining 2 candidates 3.
+        </div>}
+      {(ballotValues.votingMethod === "approval") && <div>This an approval based ballot. {"\"Approve\""} of candidates you like by checking them</div>}
     </div>
   )
 }
