@@ -116,6 +116,13 @@ const Ballot = (props: any) => {
           setVoteError("You don't have permission to vote in this ballot")
           return
         }
+        if (data.status === 405) {
+          setToUpdate(true)
+          return
+        } else if (data.status === 406) {
+          setDfaRequired(true)
+          return
+        }
         if (data.status !== 200) {
           setVoteError("Something happened when trying to submit this ballot, try again later")
           return
