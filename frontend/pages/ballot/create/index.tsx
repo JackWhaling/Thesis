@@ -224,7 +224,7 @@ const CreateBallot: NextPage = () => {
               type="text"
               placeholder="Add new candidate"
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" || e.keyCode === 13) {
                   setError(null)
                   addCandidate(e);
                 }
