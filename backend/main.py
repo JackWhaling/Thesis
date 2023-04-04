@@ -92,9 +92,9 @@ def createPoll(BallotInfo: models.BallotCreate, user = Depends(get_user_token)):
 
 
 @app.get("/v1/polls/details/{id}", status_code=status.HTTP_200_OK)
-def getPollDetails(id, request: Request):
+def getPollDetails(id, request: Request, user = Depends(get_user_token)):
     headerPass = str(request.headers.get("passcode"))
-    return getBallotInfo(supabase, id, headerPass)
+    return getBallotInfo(supabase, id, headerPass, user)
 
 @app.get("/v1/results/ballot/{id}", status_code=status.HTTP_200_OK)
 def getBallotRes(id, user=Depends(get_user_token)):
