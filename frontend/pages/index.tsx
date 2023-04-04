@@ -24,6 +24,7 @@ const Home: NextPage = () => {
   const [voteModal, setVoteModal] = useState<boolean>(false)
   const [voteState, setVoteState] = useState<any>(DEFAULT_VOTE_STATE)
   const [showIncorrect, setIncorrect] = useState<boolean>(false)
+  const [showNotAllowed, setNotAllowed] = useState<boolean>(false)
 
   const clickPush = (e: React.MouseEvent<HTMLButtonElement>) => {
     router.push((e.target as HTMLInputElement).value);
@@ -46,6 +47,7 @@ const Home: NextPage = () => {
 
   const handleGotoVote = async (e: any) => {
     e.preventDefault();
+    setNotAllowed(false)
     const config = {
       headers: {
         passcode: voteState.ballotPass,
@@ -54,6 +56,10 @@ const Home: NextPage = () => {
     }
     const uriPath = `polls/details/${voteState.ballotId}`
     const res = await getRecord(uriPath, config);
+    if (res.status == 408) {
+      setNotAllowed(true)
+      return
+    }
     if (res.status != 200) {
       setIncorrect(true)
       return
@@ -160,6 +166,7 @@ const Home: NextPage = () => {
             <label className="input__label">Ballot Passcode</label>
           </div>
           {showIncorrect && <label>Incorrect Password or Id</label>}
+          {showNotAllowed &&<label>{"You haven't been invited to vote in this ballot"}</label>}
         </Modal.Body>
         <Modal.Footer>
           <input type="submit" value="Vote!" onClick={(e) => {handleGotoVote(e)}}/>
