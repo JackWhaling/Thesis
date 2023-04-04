@@ -41,6 +41,26 @@
   }
 }
 
+.input {
+  &__add-cand-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 8px;
+    justify-content: center;
+    text-align: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 2px solid $constant-purple;
+    background-color: $constant-background;
+    border-radius: 50%;
+  }
+}
+
 .submit-button {
   border: 2px solid $constant-purple;
   border-radius: 8px;

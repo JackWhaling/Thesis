@@ -108,6 +108,20 @@ const CreateBallot: NextPage = () => {
     }
   }
 
+  const addCurrCandidate = (e: any) => {
+    e.preventDefault()
+    if (candidates.includes(currCand)) {
+      setError("Candidate already exists")
+      setCurrCand("")
+      return
+    }
+    setCandidates((prevState: string[] | any) => [
+      ...prevState,
+      currCand,
+    ]);
+    setCurrCand("")
+  }
+
   const addCandidate = (e: any) => {
     if (candidates.includes(e.target.value)) {
       setError("Candidate already exists")
@@ -234,6 +248,7 @@ const CreateBallot: NextPage = () => {
               }}
               value={currCand}
             />
+            <div className="input__add-cand-button" onClick={addCurrCandidate}>+</div>
             <div className="cut cut-large"></div>
             <label className="input__label">Candidates</label>
           </div>
