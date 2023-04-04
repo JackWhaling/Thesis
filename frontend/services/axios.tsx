@@ -6,7 +6,7 @@ import https from "https"
 //NOTE production uses HTTPS, change to http when not in production.
 
 const API = Axios.create ({
-  baseURL: `http://localhost:8000/v1/`,
+  baseURL: `https://propavote.com/v1/`,
   timeout: 30000,
 })
 
