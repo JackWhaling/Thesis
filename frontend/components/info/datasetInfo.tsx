@@ -6,10 +6,10 @@ const DatasetInfo = () => {
     <div className="dataset-info-card__container">
       <strong className="dataset-info-card__title">This website uses the <a href="https://preflib.org/format">Preflib format</a></strong>
       <div className="dataset-info-card__info">
-        There are 5 types of data files our raw data sets take, being SOI (strict orders - incomplete list), SOC (strict orders - complete list)
-        , TOC (weak orders - Complete List) and TOI (weak orders - incomplete list). We also accept approval based ballots which are simply TOC/TOI 
+        There are 5 types of data files our raw data sets take, being SOI (strict orders - incomplete list), SOC (strict orders - complete list),
+        TOC (weak orders - Complete List) and TOI (weak orders - incomplete list). We also accept approval based ballots which are simply TOC/TOI 
         datasets with only 1 preference shown for incomplete or 2 preference rankings that show all alternatives (complete).
-        At the beginning of each datasets consists of metadata. The following describes possible meta data at the top of the input:
+        At the beginning of each datasets consists of metadata. The following describes possible metadata at the top of the input:
         <ul className="dataset-info-card__metadata-list">
           <li><em>TITLE</em>: the title of the data file, for instance the year of the election represented in the data file.</li>
           <li><em>DESCRIPTION</em>: a description of the data file, providing additional information about it.</li>
@@ -22,7 +22,7 @@ const DatasetInfo = () => {
       Following this is the preference part of the input which we line for each unique vote order. For instance:
       <ul className="dataset-info-card__vote-preference">
           <li><em>1, 4, 3, 2</em>: indicates that 1 is preferred to 4, that is preferred to 3, itself preferred to 2.</li>
-          <li><em>{"1, {4, 3}, 2"}</em>: indicates that 1 is preferred to 4 and 3, that are both preferred to 2, but 4 and 3 are ranked at the same position.</li>
+          <li><em>{"1, {4, 3}, 2"}</em>: indicates that 1 is preferred to 4 and 3, which are both preferred to 2, but 4 and 3 are ranked at the same position.</li>
       </ul>
       Before each of these orders we first describe how many voters voted for that particular order.
       In a valid example we can see an input that looks like this for the dataset:
@@ -110,12 +110,12 @@ const DatasetInfo = () => {
       </div>
       <div className="dataset-info-card__subnote"><strong>Note: </strong> {"Don't"} include the line numbers as specified in the example above on the left-hand side of the table ordered 1-19.</div>
       </div>
-      <div className="dataset-info-card__note"><p><strong>ALSO</strong> you can now inspect the weight of a single voter in a voting group by appending an astrix {"(*)"} as the end of a voting group.
+      <div className="dataset-info-card__note"><p><strong>ALSO</strong> you can now inspect the weight of a single voter in a voting group by appending an asterix {"(*)"} as the end of a voting group.
         You will be only able to inspect one group at a time.
 
-        An example of a voter group line would be by appending in <strong>line 18</strong> above an astrix to look like:</p>
+        An example of a voter group line would be by appending in <strong>line 18</strong> above an asterix to look like:</p>
         <span className="dataset-info-card__small-example-line">{"3: {2,3},1*"}</span>
-        Only three voting can use this extra utility. Those voting rules are Single Transferable Vote, Expanding Approvals Rule and Proportional Approval Voting. These are noted with an astrix.
+        Only three voting can use this extra utility. Those voting rules are Single Transferable Vote, Expanding Approvals Rule and Proportional Approval Voting. These are noted with an asterix.
       </div>
       <div className="dataset-info-card__note">
         The results and types of datasets they accepts are shown in the dropdown menu. If you input 
