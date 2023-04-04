@@ -44,7 +44,7 @@ def createBallot(superdb: Client, ballotInfo: BallotCreate, userId):
     return toJsonResponse(201, {"ballotId": createdBallotData.data[0]["id"], "passcode": randomPass})
   return toJsonResponse(409, {})
 
-def getBallotInfo(superdb: Client, ballotId, passcode, skipCheck: bool = False):
+def getBallotInfo(superdb: Client, ballotId, passcode, userFbId):
   ballotData = superdb.table("ballot").select("double_factor, ballot_name, voting_method, live_results, ballot_owner, candidates, closed, \
       committee_size, elected_committee, passcode, voting_rule").eq("id", ballotId).execute()
   if (len(ballotData.data) <= 0):
@@ -53,6 +53,10 @@ def getBallotInfo(superdb: Client, ballotId, passcode, skipCheck: bool = False):
   (doubleFactor, ballotName, votingMethod, liveRes, ownerId, candidates, close, size, elected, ballotPass, votingRule) = itemgetter("double_factor", "ballot_name",
   "voting_method", "live_results", "ballot_owner", "candidates", "closed",
   "committee_size", "elected_committee", "passcode", "voting_rule")(ballotObject)
+  if (userFbId != ownerId):
+    voteCheckData = superdb.table("vote").select("vote_object_string, passcode").eq("voter_id", userFbId).eq("ballot_id", ballotId).execute()
+    if (len(voteCheckData.data) <= 0):
+      return toJsonResponse(408, {})
   mySalt = os.getenv('SOME_SALT').encode('utf-8')
   passcode = (passcode).encode('utf-8')
   hashedp = bcrypt.hashpw(passcode, mySalt)

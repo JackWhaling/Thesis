@@ -3,7 +3,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-import { UrlObject } from "url";
+import { auth } from "../services/firebase";
 import { userContext, UserContextType } from "../context/userState";
 import { Modal } from "react-bootstrap";
 import { getRecord } from "../services/axios";
@@ -49,11 +49,11 @@ const Home: NextPage = () => {
     const config = {
       headers: {
         passcode: voteState.ballotPass,
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
       }
     }
     const uriPath = `polls/details/${voteState.ballotId}`
     const res = await getRecord(uriPath, config);
-    console.log(res)
     if (res.status != 200) {
       setIncorrect(true)
       return
