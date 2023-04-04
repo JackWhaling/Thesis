@@ -110,34 +110,32 @@ const Ballot = (props: any) => {
           Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
         }
       }
-      const res = postRecord(uriPath, postData, config)
-      res.then((data) => {
-        if (data.status === 409) {
-          setVoteError("You don't have permission to vote in this ballot")
-          return
-        }
-        if (data.status === 405) {
-          setToUpdate(true)
-          return
-        } else if (data.status === 406) {
-          setDfaRequired(true)
-          return
-        }
-        if (data.status !== 200) {
-          setVoteError("Something happened when trying to submit this ballot, try again later")
-          return
-        }
-        const end = new Date()
-        // @ts-ignore
-        window.gtag("event", "vote", {
-          start: `${start.toUTCString()}`,
-          end: `${end.toUTCString()}`,
-          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-          votePattern: `${voteOrder}`,
-        })
-        setVoteError("Ballot Submitted Successfully!")
+      const res = await postRecord(uriPath, postData, config)
+      if (res.status === 409) {
+        setVoteError("You don't have permission to vote in this ballot")
         return
+      }
+      if (res.status === 405) {
+        setToUpdate(true)
+        return
+      } else if (res.status === 406) {
+        setDfaRequired(true)
+        return
+      }
+      if (res.status !== 200) {
+        setVoteError("Something happened when trying to submit this ballot, try again later")
+        return
+      }
+      const end = new Date()
+      // @ts-ignore
+      window.gtag("event", "vote", {
+        start: `${start.toUTCString()}`,
+        end: `${end.toUTCString()}`,
+        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+        votePattern: `${voteOrder}`,
       })
+      setVoteError("Ballot Submitted Successfully!")
+      return
     }
     let valueSet = new Set()
     for (let i = 0; i < target.length - 1; i++) {
@@ -169,33 +167,31 @@ const Ballot = (props: any) => {
         Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
       }
     }
-    const res = postRecord(uriPath, postData, config)
-    res.then((data) => {
-      if (data.status === 403) {
-        setVoteError("You don't have permission to vote in this ballot")
-        return
-      }
-      else if (data.status === 405) {
-        setToUpdate(true)
-        return
-      } else if (data.status === 406) {
-        setDfaRequired(true)
-        return
-      } else if (data.staus === 200) {
-        setVoteError("Ballot Submitted Successfully!")
-        const end = new Date()
-        // @ts-ignore
-        window.gtag("event", "vote", {
-          start: `${start.toUTCString()}`,
-          end: `${end.toUTCString()}`,
-          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-          votePattern: `${voteOrder}`,
-        })
-        return
-      } else {
-        return
-      }
-    })
+    const res = await postRecord(uriPath, postData, config)
+    if (res.status === 403) {
+      setVoteError("You don't have permission to vote in this ballot")
+      return
+    }
+    else if (res.status === 405) {
+      setToUpdate(true)
+      return
+    } else if (res.status === 406) {
+      setDfaRequired(true)
+      return
+    } else if (res.staus === 200) {
+      setVoteError("Ballot Submitted Successfully!")
+      const end = new Date()
+      // @ts-ignore
+      window.gtag("event", "vote", {
+        start: `${start.toUTCString()}`,
+        end: `${end.toUTCString()}`,
+        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+        votePattern: `${voteOrder}`,
+      })
+      return
+    } else {
+      return
+    }
   }
 
   const handleDfaChange = (e:any) => {
@@ -265,35 +261,32 @@ const Ballot = (props: any) => {
         Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
       }
     }
-    const res = putRecord(uriPath, postData, config)
-    res.then((data) => {
-      console.log(data)
-    if (data.status === 200) {
-        const end = new Date()
-        // @ts-ignore
-        window.gtag("event", "vote", {
-          start: `${start.toUTCString()}`,
-          end: `${end.toUTCString()}`,
-          randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
-          votePattern: `${voteOrder}`,
-        })
-        setVoteError("Ballot Submitted Successfully!")
-        setToUpdate(false)
-        return
-      } else if (data.status === 403) {
-        setVoteError("Something happened!")
-        setToUpdate(false)
-        return
-      } else if (data.status === 406) {
-        setVoteError("Double Factor Authentication required")
-        setDfaRequired(true)
-        return
-      } else if (data.status === 405) {
-        setVoteError("An Error occured, please try again")
-        setToUpdate(false)
-        return
-      }
-    })
+    const res = await putRecord(uriPath, postData, config)
+    if (res.status === 200) {
+      const end = new Date()
+      // @ts-ignore
+      window.gtag("event", "vote", {
+        start: `${start.toUTCString()}`,
+        end: `${end.toUTCString()}`,
+        randomStyles: `${styleRandomListNum} ${styleRandomCandNum} ${styleRandomNameNum}`,
+        votePattern: `${voteOrder}`,
+      })
+      setVoteError("Ballot Submitted Successfully!")
+      setToUpdate(false)
+      return
+    } else if (res.status === 403) {
+      setVoteError("Something happened!")
+      setToUpdate(false)
+      return
+    } else if (res.status === 406) {
+      setVoteError("Double Factor Authentication required")
+      setDfaRequired(true)
+      return
+    } else if (res.status === 405) {
+      setVoteError("An Error occured, please try again")
+      setToUpdate(false)
+      return
+    }
   }
 
   const handleUpdateDfa = async (e: any) => {
