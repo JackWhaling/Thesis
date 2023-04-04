@@ -39,6 +39,7 @@ const Account: NextPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [voters, setVoters] = useState<string[]>([])
   const [currVoter, setCurrVoter] = useState<string>("")
+  const [showUnAuth, setShowUnAuth] = useState<boolean>(false)
   const [isDfaAdd, setIsDfaAdd] = useState<boolean>(false)
   const [givenPass, setGivenPass] = useState<string>("")
 
@@ -115,15 +116,22 @@ const Account: NextPage = () => {
   }
 
   const handleGotoVote = async (id: string, passcode: string) => {
+    setShowUnAuth(false)
+    setIncorrect(false)
     const config = {
       headers: {
         passcode: passcode,
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
       }
     }
     const uriPath = `polls/details/${id}`
     const res = await getRecord(uriPath, config);
     if (res.status == 403) {
       setIncorrect(true)
+      return
+    }
+    if (res.status == 401 || res.status == 408) {
+      setShowUnAuth(true)
       return
     }
     setIncorrect(false)
@@ -444,6 +452,7 @@ const Account: NextPage = () => {
             <label className="input__label">Ballot Passcode</label>
           </div>
           {showIncorrect && <label>Incorrect Password or Id</label>}
+          {showUnAuth && <label>Unauthorized to go to this ballot</label>}
         </Modal.Body>
         <Modal.Footer>
           <input type="submit" value="Get Results!" onClick={(e) => {

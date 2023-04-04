@@ -82,12 +82,17 @@ const BallotResults = (props: any) => {
     const config = {
       headers: {
         passcode: passcode,
+        Authorization: "Bearer " + await auth.currentUser?.getIdToken(),
       }
     }
     const uriPath = `polls/details/${ballotId}`
     const res = await getRecord(uriPath, config);
     if (res.status == 403) {
       setError("Incorrect Passcode")
+      return
+    }
+    if (res.status == 401 || res.status == 408) {
+      setError("Unauthorized for more information about this ballot")
       return
     }
     if (res.status == 200) {
