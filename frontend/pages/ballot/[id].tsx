@@ -68,6 +68,19 @@ const Ballot = (props: any) => {
     return false
   }
 
+  const isWeakCheck = (values: Set<any>) => {
+    const newArr = Array.from(values).sort()
+    console.log(newArr)
+    var checkStar = 0
+    while (checkStar < newArr.length) {
+      if (checkStar + 1 != parseInt(newArr[checkStar])) {
+        return false
+      }
+      checkStar += 1
+    }
+    return true
+  }
+
   const handleSelectValue = (index: number, e: any) => {
     if (!e.target.value) {
       return
@@ -150,6 +163,12 @@ const Ballot = (props: any) => {
     if (ballotValues.votingMethod === "strictOrdering") {
       if (!isStrictCheck(valueSet)) {
         setVoteError("This is a strict order ballot, no two candidates can have the same preferences.")
+        return
+      }
+    }
+    if (ballotValues.votingMethod === "weakOrdering") {
+      if (!isWeakCheck(valueSet)) {
+        setVoteError("This is a weak order ballot, you must vote sequentially starting from 1.")
         return
       }
     }

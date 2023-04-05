@@ -30,9 +30,13 @@ export function diffTime(d1: any, d2: any) {
         getMilliseconds: function() {
             return d3.getMilliseconds() - d0.getMilliseconds();
         },
+        getSeconds: function() {
+            return d3.getSeconds() - d0.getSeconds();
+        },
         toString: function(){
             return this.getHours() + ":" +
                    this.getMinutes() + ":" + 
+                   this.getSeconds() + ":" +
                    this.getMilliseconds();
         },
     };

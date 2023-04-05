@@ -79,13 +79,12 @@ class EarProfile:
     
     def stvResult(self):
         numVoters = len(self.voters)
-        numCands = len(self.candidates)
         k = self.committee_size
         quota: int = (numVoters/(k + 1)) + 1
         electedCommittee = []
         elimintedCands = []
         currentCandsSupporters = defaultdict(list)
-        currentCands = defaultdict(list)
+        currentCands = defaultdict()
         totalWeight = 0
         specificWeight = 0
         """
@@ -128,7 +127,7 @@ class EarProfile:
             elif ((len(candidatesWithQuota)) + len(electedCommittee) <= k):
                 for cand in candidatesWithQuota:
                     electedCommittee.append(cand)
-                    for voter in currentCandsSupporters[currentVotedCand]:
+                    for voter in currentCandsSupporters[cand]:
                         if (voter.specialVoter):
                             specificWeight += voter.weight
                         totalWeight += voter.weight
@@ -148,9 +147,13 @@ class EarProfile:
                 while (numberToPick > 0):
                     sortedCands = sorted(currentCands.items(), key=lambda x: (x[1], random.random()), reverse=True)
                     electedCommittee.append(sortedCands[elected][0])
+                    for voter in currentCandsSupporters[electedCommittee[elected]]:
+                        if (voter.specialVoter):
+                            specificWeight += voter.weight
+                        totalWeight += voter.weight
                     elected += 1
                     numberToPick -= 1
-        return electedCommittee, totalWeight, specificWeight
+            return electedCommittee, totalWeight, specificWeight
         
 
     def earResult(self):
@@ -177,7 +180,7 @@ class EarProfile:
                     currentCandsSupporters[cand].append(voter)
                     currentCands[cand] += voter.weight
             candidatesWithQuota = self.checkCandidateQuota(quota=quota, cand_pont_dict=currentCands)
-            if (len(candidatesWithQuota) + len(electedCommittee) <= k):
+            if (len(candidatesWithQuota) + len(electedCommittee) < k):
                 for c in candidatesWithQuota:
                     electedCommittee.append(c)
                     for voter in currentCandsSupporters[c]:
